@@ -18,6 +18,8 @@ class App:
         sources = self.getArchivesSelect()
         if sources == '':
             print('Não foi Selecionado Nenhum Arquivo')
+        else:
+            pass
     
 
     def getComboboxValue(self, e):
@@ -36,10 +38,10 @@ class App:
 
         label = Label(main, text='Lista de Separação', font=self.fontes.tituloPaginaInicial())
 
-        archive_select_label = Label(main, text='Selecione os Arquivos: ')
+        archive_select_label = Label(main, text='Selecione os Arquivos: ', font=self.fontes.label12())
         archive_select_button = Button(main, text='Selecionar Arquivos', command=self.getData)
 
-        filter_select_label = Label(main, text='Selecione o Tipo de Filtragem: ')
+        filter_select_label = Label(main, text='Selecione o Tipo de Filtragem: ', font=self.fontes.label12())
         self.filter_select_combobox = Combobox(main, values=self.filter_type)
         self.filter_select_combobox.set(self.filter_type[0])
         self.filter_select_combobox.bind('<<ComboboxSelected>>', self.getComboboxValue)
