@@ -10,6 +10,7 @@ class App:
     def __init__(self, tk):
         self.tk = tk
         self.filter_type = ('Nota Fiscal', 'Cidade', 'Destinatário')
+        self.recipients = []
         self.fontes = fontes.Fontes()
         self.mainFrame()
     
@@ -18,8 +19,12 @@ class App:
         sources = self.getArchivesSelect()
         if sources == '':
             print('Não foi Selecionado Nenhum Arquivo')
+            self.recipients = []
         else:
-            pass
+            for source in sources:
+                dados = DadosXML.DadosXML(source)
+                recipient = dados.dados()
+                self.recipients.append(recipient)
     
 
     def getComboboxValue(self, e):

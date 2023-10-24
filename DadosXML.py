@@ -24,8 +24,8 @@ class DadosXML:
             tipo_dados_produtos = type(dados_produtos)
 
             if tipo_dados_produtos == dict:
-                produto = self.dadosProduto(dados_produtos)
-                self.destinatario.adicionarProdutos(produto['prod'])
+                produto = self.dadosProduto(dados_produtos['prod'])
+                self.destinatario.adicionarProdutos(produto)
             elif tipo_dados_produtos == list:
                 for produto_dados in dados_produtos:
                     produto = self.dadosProduto(produto_dados['prod'])
