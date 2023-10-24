@@ -19,25 +19,64 @@ class App:
         sources = self.getArchivesSelect()
         if sources == '':
             print('Não foi Selecionado Nenhum Arquivo')
-            self.recipients = []
         else:
+            self.restartRecipientsList()
             for source in sources:
                 dados = DadosXML.DadosXML(source)
                 recipient = dados.dados()
                 self.recipients.append(recipient)
+            self.showDataFiltered()
     
-
-    def getComboboxValue(self, e):
-        print(self.filter_select_combobox.get())
-        return self.filter_select_combobox.get()
-
 
     def getArchivesSelect(self):
         initialdir = './'
         filetypes = (('XML', '*.xml'), ('Todos os Arquivos', '*.*'))
         return fd.askopenfilenames(title='Selecione os Arquivos', initialdir=initialdir, filetypes=filetypes)
 
+    
+    def restartRecipientsList(self):
+        self.recipients = []
 
+
+    def showDataFiltered(self):
+        filter_type = self.getComboboxValue()
+
+        if filter_type == 'Nota Fiscal':
+            self.showDataFilterdByNotaFiscal()
+        elif filter_type == 'Cidade':
+            self.showDataFilteredByCidade()
+        elif filter_type == 'Destinatário':
+            self.showDataFilteredByDestinatario()
+        else:
+            # Criar Janela de Erro
+            pass
+
+
+    def getComboboxValue(self):
+        return self.filter_select_combobox.get()
+
+    
+    def showDataFilterdByNotaFiscal(self):
+        data_by_nota_fiscal = {}
+        for recipient in self.recipients:
+            data_by_nota_fiscal[recipient.get_nota_fiscal()] = recipient
+            print(recipient.get_nota_fiscal())
+
+    
+    def showDataFilteredByCidade(self):
+        data_by_cidade = {}
+        for recipient in self.recipients:
+            data_by_cidade[recipient.get_municipio()] = recipient
+            print(recipient.get_municipio()) 
+
+
+    def showDataFilteredByDestinatario(self):
+        data_by_destinatario = {}
+        for recipient in self.recipients:
+            data_by_destinatario[recipient.get_nome()] = recipient
+            print(recipient.get_nome()) 
+
+    
     def mainFrame(self):
         main = Frame(self.tk)
 
@@ -49,7 +88,7 @@ class App:
         filter_select_label = Label(main, text='Selecione o Tipo de Filtragem: ', font=self.fontes.label12())
         self.filter_select_combobox = Combobox(main, values=self.filter_type)
         self.filter_select_combobox.set(self.filter_type[0])
-        self.filter_select_combobox.bind('<<ComboboxSelected>>', self.getComboboxValue)
+        # self.filter_select_combobox.bind('<<ComboboxSelected>>', self.getComboboxValue)
 
         label.grid(column=0, row=0, columnspan=3, pady=(10, 30))
         archive_select_label.grid(column=0, row=1, sticky=W)
