@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.ttk import *
 import tkinter.filedialog as fd
 import fontes
+import message
 import DadosXML
 
 class App:
@@ -12,12 +13,14 @@ class App:
         self.filter_type = ('Nota Fiscal', 'Cidade', 'Destinatário')
         self.recipients = []
         self.fontes = fontes.Fontes()
+        self.message = message.Messager()
         self.mainFrame()
     
     
     def getData(self):
         sources = self.getArchivesSelect()
         if sources == '':
+            self.message.fileNotOpen()
             print('Não foi Selecionado Nenhum Arquivo')
         else:
             self.restartRecipientsList()
@@ -88,7 +91,8 @@ class App:
         filter_select_label = Label(main, text='Selecione o Tipo de Filtragem: ', font=self.fontes.label12())
         self.filter_select_combobox = Combobox(main, values=self.filter_type)
         self.filter_select_combobox.set(self.filter_type[0])
-        # self.filter_select_combobox.bind('<<ComboboxSelected>>', self.getComboboxValue)
+
+        data_show_treeview = Treeview(main)
 
         label.grid(column=0, row=0, columnspan=3, pady=(10, 30))
         archive_select_label.grid(column=0, row=1, sticky=W)
