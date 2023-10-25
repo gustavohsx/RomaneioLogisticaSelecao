@@ -1,31 +1,33 @@
-import tkinter as tk
-from tkinter import ttk
+from tkinter import *
 
+class MyList(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.pack()
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_propagate(False)
 
+        self.canvas = Canvas(self)
+        self.canvas.grid(row=0, column=0, sticky="news")
 
-class Application(ttk.Frame):
-    def __init__(self, main_window):
-        super().__init__(main_window)
-        main_window.geometry("400x500")
+        self.scroll_bar = Scrollbar(self, orient=VERTICAL, command = self.canvas.yview)
+        self.scroll_bar.grid(row=0, column=1, sticky='ns')
+        self.canvas.config(yscrollcommand = self.scroll_bar.set)
         
-        notebook = ttk.Notebook(self)
+        self.internal_frame = Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.internal_frame, anchor='nw')
 
-        frame = tk.Frame(notebook)
-        frame2 = tk.Frame(notebook)
+        self.__build()
+        self.internal_frame.update_idletasks()
 
-        label1 = tk.Label(frame, text='Teste')
-        label2 = tk.Label(frame2, text='Teste2')
+        self.config(width=300,height=300)
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
-        notebook.add(frame, text='aba')
-        notebook.add(frame2, text='aba2')
+    def __build(self):
+        for i in range(300): Label(self.internal_frame, text = "Olá Mundo! Pela %i vez..." % i).pack()
 
-        label1.pack()
-        label2.pack(padx=10, pady=10)
+window = Tk()
+my_list = MyList(window)
 
-        notebook.pack()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = Application(root)
-    app.pack(expand=True, fill='both')
-    root.mainloop()
+window.mainloop()
