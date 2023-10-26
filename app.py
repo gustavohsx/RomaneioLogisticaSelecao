@@ -27,6 +27,7 @@ class App:
             self.message.fileNotOpen()
             print('Não foi Selecionado Nenhum Arquivo')
         else:
+            self.message.quantSelectedFiles(len(sources))
             self.have_source = True
             self.restartRecipientsList()
             for source in sources:
@@ -173,7 +174,8 @@ class App:
             self.selected_products = sorted(self.selected_products, key=self.sortByName)
             self.confirmatePDFCreate()
             self.addValuesTreeview(self.selected_products)
-    
+        else:
+            self.message.unselectedItens()
 
     def sortByName(self, e):
         return e.get_nome()
@@ -229,13 +231,19 @@ class App:
         print(notas_fiscais, peso_bruto, peso_liquido)
 
         caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
-        pdf = GeradorPDF.GerarPDF(caminho)
-        pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf))
-        self.destroyConfirmatePDFCreate()
+        if caminho != '':
+            pdf = GeradorPDF.GerarPDF(caminho)
+            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf))
+            self.message.sucessPDFCreate()
+            self.destroyConfirmatePDFCreate()
+        else:
+            self.message.unsucessPDFCreate()
+            self.confirmate_main.focus_set()
 
 
     def destroyConfirmatePDFCreate(self):
         self.confirmate_main.destroy()
+        self.main.focus_set()
 
 
     def onMousewheel(self, event):
@@ -297,8 +305,15 @@ class App:
 
         self.confirmate_main.focus_set()
 
+        larguraTela = self.confirmate_main.winfo_screenwidth()
+        alturaTela = self.confirmate_main.winfo_screenheight()
+        self.confirmate_main.geometry(f'{larguraTela}x{alturaTela}+-10+0')
+
 
 tk = Tk()
 aa = App(tk)
-tk.geometry('800x600')
+tk.title('Romaneio')
+larguraTela = tk.winfo_screenwidth()
+alturaTela = tk.winfo_screenheight()
+tk.geometry(f'{larguraTela}x{alturaTela}+-10+0')
 tk.mainloop()
