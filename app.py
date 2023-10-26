@@ -15,8 +15,8 @@ class App:
         self.fontes = fontes.Fontes()
         self.message = message.Messager()
         self.mainFrame()
-    
-    
+
+
     def getData(self):
         sources = self.getArchivesSelect()
         if sources == '':
@@ -29,14 +29,14 @@ class App:
                 recipient = dados.dados()
                 self.recipients.append(recipient)
             self.showDataFiltered()
-    
+
 
     def getArchivesSelect(self):
         initialdir = './'
         filetypes = (('XML', '*.xml'), ('Todos os Arquivos', '*.*'))
         return fd.askopenfilenames(title='Selecione os Arquivos', initialdir=initialdir, filetypes=filetypes)
 
-    
+
     def restartRecipientsList(self):
         self.recipients = []
 
@@ -55,17 +55,21 @@ class App:
             pass
 
 
+    def changeShowDataFiltered(self, event):
+        self.showDataFiltered()
+
+
     def getComboboxValue(self):
         return self.filter_select_combobox.get()
 
-    
+
     def showDataFilterdByNotaFiscal(self):
         self.data = {}
         for recipient in self.recipients:
             self.data[recipient.get_nota_fiscal()] = recipient
         self.createCheckedButtonViewData(self.data)
 
-    
+
     def showDataFilteredByCidade(self):
         self.data = {}
         for recipient in self.recipients:
@@ -78,27 +82,56 @@ class App:
         for recipient in self.recipients:
             self.data[recipient.get_nome()] = recipient
         self.createCheckedButtonViewData(self.data)
-        
+
 
     def createCheckedButtonViewData(self, data):
         self.checkbutton_vars = []
+        self.createCanvasAndDataView()
         for recipient in data.keys():
             var = IntVar()
             recipient_checked_button = Checkbutton(self.checked_button_frame, text=recipient, variable=var)
             recipient_checked_button.pack(anchor=W)
             self.checkbutton_vars.append(var)
+        self.canvas.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.bind_all("<MouseWheel>", self.onMousewheel)
         self.main.update_idletasks()
         self.createButtonPDF()
-    
-    
+
+
+    def createCanvasAndDataView(self):
+        try:
+            self.canvas.unbind("<Configure>")
+            self.canvas.unbind("<MouseWheel>")
+            self.canvas.destroy()
+            self.scroll.destroy()
+            self.checked_button_frame.destroy()
+        except:
+            print('Não foi possivel apagar o Canvas')
+        self.main.update_idletasks()
+        self.canvas = Canvas(self.main)
+        self.canvas.grid(column=0, row=4, sticky=NSEW, columnspan=4)
+
+        self.scroll = Scrollbar(self.main, orient=VERTICAL, command=self.canvas.yview)
+        self.scroll.grid(column=4, row=4, sticky=NS)
+        self.canvas.config(yscrollcommand=self.scroll.set)
+
+        self.checked_button_frame = Frame(self.canvas)
+        self.canvas.create_window((0,0), window=self.checked_button_frame, anchor=NW)
+
+
     def createButtonPDF(self):
         try:
-            pdf_button.destroy()
+            self.pdf_button.destroy()
         except:
             print('Botão de Imprimir Não Existe')
-        pdf_button = Button(self.main, text='Imprimir', command=self.getValuesCheckbutton)
-        pdf_button.grid(column=0, row=5, columnspan=3)
-    
+        self.main.update_idletasks()
+        self.pdf_button = Button(self.main, text='Imprimir', command=self.getValuesCheckbutton)
+        self.select_all = Button(self.main, text='Selecionar Tudo', command=self.setValuesCheckbuttonTrue)
+        self.deselect_all = Button(self.main, text='Desmarcar Tudo', command=self.setValuesCheckbuttonFalse)
+        self.pdf_button.grid(column=0, row=6, sticky=NSEW, columnspan=3, pady=10)
+        self.select_all.grid(column=0, row=5, sticky=NSEW, pady=20, padx=10)
+        self.deselect_all.grid(column=2, row=5, sticky=NSEW, pady=20, padx=10)
+
 
     def getValuesCheckbutton(self):
         valores_selecionados = []
@@ -108,9 +141,19 @@ class App:
         print(valores_selecionados)
 
 
-    def on_mousewheel(self, event):
-        self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
+    def setValuesCheckbuttonTrue(self):
+        for i, item in enumerate(self.data.keys()):
+            self.checkbutton_vars[i].set(1)
     
+
+    def setValuesCheckbuttonFalse(self):
+        for i, item in enumerate(self.data.keys()):
+            self.checkbutton_vars[i].set(0)
+
+
+    def onMousewheel(self, event):
+        self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
     def mainFrame(self):
         self.main = Frame(self.tk)
 
@@ -122,19 +165,7 @@ class App:
         filter_select_label = Label(self.main, text='Selecione o Tipo de Filtragem: ', font=self.fontes.label12())
         self.filter_select_combobox = Combobox(self.main, values=self.filter_type)
         self.filter_select_combobox.set(self.filter_type[0])
-
-        self.canvas = Canvas(self.main)
-        self.canvas.grid(column=0, row=4, sticky=NSEW, columnspan=4)
-
-        self.scroll = Scrollbar(self.main, orient=VERTICAL, command=self.canvas.yview)
-        self.scroll.grid(column=4, row=4, sticky=NS)
-        self.canvas.config(yscrollcommand=self.scroll.set)
-
-        self.checked_button_frame = Frame(self.canvas)
-        self.canvas.create_window((0,0), window=self.checked_button_frame, anchor=NW)
-
-        self.canvas.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
+        self.filter_select_combobox.bind("<<ComboboxSelected>>", self.changeShowDataFiltered)
         
         label.grid(column=0, row=0, columnspan=3, pady=(10, 30))
         archive_select_label.grid(column=1, row=1, sticky=W)
@@ -147,5 +178,5 @@ class App:
 
 tk = Tk()
 aa = App(tk)
-tk.geometry('600x400')
+tk.geometry('800x600')
 tk.mainloop()
