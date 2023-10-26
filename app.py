@@ -215,8 +215,9 @@ class App:
 
             for produto in arquivo.get_produtos():
                 try:
-                    quantidade = float(todos_produtos[produto.get_codigo_fabrica()].get_quantidade()) + float(produto.get_quantidade())
-                    produto_novo = ProdutosDTO.ProdutosDTO(produto.get_codigo_fabrica(), produto.getDescricao(), produto.get_unidade(), quantidade, produto.get_codigo_barras())
+                    quantidade = todos_produtos[produto.get_codigo_fabrica()].get_quantidade() + produto.get_quantidade()
+                    # mexer aqui não esta somando a quantidade
+                    produto_novo = ProdutosDTO.ProdutosDTO(codigo_fabrica=produto.get_codigo_fabrica(), descricao=produto.getDescricao(), unidade=produto.get_unidade(), quantidade=quantidade, codigo_barras=produto.get_codigo_barras())
                     todos_produtos[produto.get_codigo_fabrica()] = produto_novo
                     quantidade_total_produtos += quantidade
                 except:
