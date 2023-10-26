@@ -11,6 +11,7 @@ class App:
     def __init__(self, tk):
         self.tk = tk
         self.filter_type = ('Nota Fiscal', 'Cidade', 'Destinatário')
+        self.have_source = False
         self.recipients = []
         self.fontes = fontes.Fontes()
         self.message = message.Messager()
@@ -19,10 +20,13 @@ class App:
 
     def getData(self):
         sources = self.getArchivesSelect()
+        print(sources)
         if sources == '':
+            self.have_source = False
             self.message.fileNotOpen()
             print('Não foi Selecionado Nenhum Arquivo')
         else:
+            self.have_source = True
             self.restartRecipientsList()
             for source in sources:
                 dados = DadosXML.DadosXML(source)
@@ -42,17 +46,18 @@ class App:
 
 
     def showDataFiltered(self):
-        filter_type = self.getComboboxValue()
+        if self.have_source:
+            filter_type = self.getComboboxValue()
 
-        if filter_type == 'Nota Fiscal':
-            self.showDataFilterdByNotaFiscal()
-        elif filter_type == 'Cidade':
-            self.showDataFilteredByCidade()
-        elif filter_type == 'Destinatário':
-            self.showDataFilteredByDestinatario()
-        else:
-            # Criar Janela de Erro
-            pass
+            if filter_type == 'Nota Fiscal':
+                self.showDataFilterdByNotaFiscal()
+            elif filter_type == 'Cidade':
+                self.showDataFilteredByCidade()
+            elif filter_type == 'Destinatário':
+                self.showDataFilteredByDestinatario()
+            else:
+                # Criar Janela de Erro
+                pass
 
 
     def changeShowDataFiltered(self, event):
@@ -67,24 +72,32 @@ class App:
         self.data = {}
         for recipient in self.recipients:
             self.data[recipient.get_nota_fiscal()] = recipient
-        self.createCheckedButtonViewData(self.data)
+        self.createCheckedButtonAndViewData(self.data)
 
 
     def showDataFilteredByCidade(self):
         self.data = {}
         for recipient in self.recipients:
-            self.data[recipient.get_municipio()] = recipient
-        self.createCheckedButtonViewData(self.data)
+            try:
+                self.data[recipient.get_municipio()].append(recipient)
+            except:
+                self.data[recipient.get_municipio()] = []
+                self.data[recipient.get_municipio()].append(recipient)
+        self.createCheckedButtonAndViewData(self.data)
 
 
     def showDataFilteredByDestinatario(self):
         self.data = {}
         for recipient in self.recipients:
-            self.data[recipient.get_nome()] = recipient
-        self.createCheckedButtonViewData(self.data)
+            try:
+                self.data[recipient.get_nome()].append(recipient)
+            except:
+                self.data[recipient.get_nome()] = []
+                self.data[recipient.get_nome()].append(recipient)
+        self.createCheckedButtonAndViewData(self.data)
 
 
-    def createCheckedButtonViewData(self, data):
+    def createCheckedButtonAndViewData(self, data):
         self.checkbutton_vars = []
         self.createCanvasAndDataView()
         for recipient in data.keys():
@@ -125,7 +138,7 @@ class App:
         except:
             print('Botão de Imprimir Não Existe')
         self.main.update_idletasks()
-        self.pdf_button = Button(self.main, text='Imprimir', command=self.getValuesCheckbutton)
+        self.pdf_button = Button(self.main, text='Gerar PDF', command=self.getValuesConfirmatePDFCreate)
         self.select_all = Button(self.main, text='Selecionar Tudo', command=self.setValuesCheckbuttonTrue)
         self.deselect_all = Button(self.main, text='Desmarcar Tudo', command=self.setValuesCheckbuttonFalse)
         self.pdf_button.grid(column=0, row=6, sticky=NSEW, columnspan=3, pady=10)
@@ -133,13 +146,36 @@ class App:
         self.deselect_all.grid(column=2, row=5, sticky=NSEW, pady=20, padx=10)
 
 
-    def getValuesCheckbutton(self):
+    def getValuesConfirmatePDFCreate(self):
         valores_selecionados = []
         for i, item in enumerate(self.data.keys()):
             if self.checkbutton_vars[i].get() == 1:
                 valores_selecionados.append(item)
-        print(valores_selecionados)
-        self.confirmatePDFCreate()
+
+        if len(valores_selecionados) != 0:
+            aux = []
+
+            filter_type = self.getComboboxValue()
+
+            if filter_type == 'Cidade':
+                for item in valores_selecionados:
+                    for valor in self.data[item]:
+                        aux.append(valor)
+            elif filter_type == 'Destinatário':
+                for item in valores_selecionados:
+                    for valor in self.data[item]:
+                        aux.append(valor)
+            else:
+                for valor in valores_selecionados:
+                    aux.append(self.data[valor])
+
+            aux = sorted(aux, key=self.sortByName)
+            self.confirmatePDFCreate()
+            self.addValuesTreeview(aux)
+    
+
+    def sortByName(self, e):
+        return e.get_nome()
 
 
     def setValuesCheckbuttonTrue(self):
@@ -150,6 +186,20 @@ class App:
     def setValuesCheckbuttonFalse(self):
         for i, item in enumerate(self.data.keys()):
             self.checkbutton_vars[i].set(0)
+    
+
+    def addValuesTreeview(self, values):
+        for data in values:
+            nome = (f'{data.get_nome()}', f'{data.get_nota_fiscal()}', '', '', '')
+            head = self.products_treeview.insert('', END, values=nome)
+            products = data.get_produtos()
+            for product in products:
+                aux = ('', '', product.get_codigo_fabrica(), product.get_descricao(), f'{product.get_quantidade()} {product.get_unidade()}')
+                self.products_treeview.insert(head, END, values=aux)
+    
+
+    def destroyConfirmatePDFCreate(self):
+        self.confirmate_main.destroy()
 
 
     def onMousewheel(self, event):
@@ -169,7 +219,7 @@ class App:
         self.filter_select_combobox.set(self.filter_type[0])
         self.filter_select_combobox.bind("<<ComboboxSelected>>", self.changeShowDataFiltered)
         
-        label.grid(column=0, row=0, columnspan=3, pady=(10, 30))
+        label.grid(column=0, row=0, columnspan=3, pady=(20, 30))
 
         archive_select_label.grid(column=0, row=0, sticky=W)
         archive_select_button.grid(column=1, row=0, sticky=NSEW)
@@ -183,16 +233,33 @@ class App:
 
     def confirmatePDFCreate(self):
         self.confirmate_main = Toplevel(self.main)
+        self.confirmate_main.title('Produtos Selecionados')
+        confirmation_title_label = Label(self.confirmate_main, text='Verifique os Produtos', font=self.fontes.tituloPaginaInicial())
 
-        columns = ['', 'codigo_fabrica', 'descricao', 'quantidade']
-        products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings')
+        columns = ['id', 'nf', 'codigo_fabrica', 'descricao', 'quantidade']
+        self.products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings')
 
-        products_treeview.heading(0, text='', anchor=CENTER)
-        products_treeview.heading('codigo_fabrica', text='Código de Fabrica', anchor=CENTER)
-        products_treeview.heading('descricao', text='Descrição', anchor=CENTER)
-        products_treeview.heading('quantidade', text='Quantidade', anchor=CENTER)
+        self.products_treeview.column( 0, anchor=W, width=300)
+        self.products_treeview.column( 1, anchor=CENTER, width=100)
+        self.products_treeview.column( 2, anchor=E, width=150)
+        self.products_treeview.column( 3, anchor=W, width=450)
+        self.products_treeview.column( 4, anchor=E, width=100)
 
-        products_treeview.pack()
+        self.products_treeview.heading('id', text='ID', anchor=CENTER)
+        self.products_treeview.heading('nf', text='Nota Fiscal', anchor=CENTER)
+        self.products_treeview.heading('codigo_fabrica', text='Código de Fabrica', anchor=CENTER)
+        self.products_treeview.heading('descricao', text='Descrição', anchor=CENTER)
+        self.products_treeview.heading('quantidade', text='Quantidade', anchor=CENTER)
+
+        back_buton = Button(self.confirmate_main, text='Voltar', command=self.destroyConfirmatePDFCreate)
+        confirmate_button = Button(self.confirmate_main, text='Gerar PDF', width=20)
+
+        confirmation_title_label.pack(pady=(20, 10))
+        self.products_treeview.pack(padx=20, pady=20)
+        back_buton.pack()
+        confirmate_button.pack(pady=(10, 20))
+
+        self.confirmate_main.focus_set()
 
 
 tk = Tk()
