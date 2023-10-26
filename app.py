@@ -4,6 +4,8 @@ import tkinter.filedialog as fd
 import fontes
 import message
 import DadosXML
+import ProdutosDTO
+import GeradorPDF
 
 class App:
 
@@ -20,7 +22,6 @@ class App:
 
     def getData(self):
         sources = self.getArchivesSelect()
-        print(sources)
         if sources == '':
             self.have_source = False
             self.message.fileNotOpen()
@@ -153,25 +154,25 @@ class App:
                 valores_selecionados.append(item)
 
         if len(valores_selecionados) != 0:
-            aux = []
+            self.selected_products = []
 
             filter_type = self.getComboboxValue()
 
             if filter_type == 'Cidade':
                 for item in valores_selecionados:
                     for valor in self.data[item]:
-                        aux.append(valor)
+                        self.selected_products.append(valor)
             elif filter_type == 'Destinatário':
                 for item in valores_selecionados:
                     for valor in self.data[item]:
-                        aux.append(valor)
+                        self.selected_products.append(valor)
             else:
                 for valor in valores_selecionados:
-                    aux.append(self.data[valor])
+                    self.selected_products.append(self.data[valor])
 
-            aux = sorted(aux, key=self.sortByName)
+            self.selected_products = sorted(self.selected_products, key=self.sortByName)
             self.confirmatePDFCreate()
-            self.addValuesTreeview(aux)
+            self.addValuesTreeview(self.selected_products)
     
 
     def sortByName(self, e):
@@ -194,9 +195,44 @@ class App:
             head = self.products_treeview.insert('', END, values=nome)
             products = data.get_produtos()
             for product in products:
-                aux = ('', '', product.get_codigo_fabrica(), product.get_descricao(), f'{product.get_quantidade()} {product.get_unidade()}')
+                aux = ('', '', product.get_codigo_fabrica(), product.get_descricao(), f'{int(float(product.get_quantidade()))} {product.get_unidade()}')
                 self.products_treeview.insert(head, END, values=aux)
     
+
+    def geratePDF(self):
+        todos_produtos = {}
+        peso_bruto = 0
+        peso_liquido = 0
+        notas_fiscais = []
+        quantidade_total_produtos = 0
+        produtos = []
+        for arquivo in self.selected_products:
+            notas_fiscais.append(arquivo.get_nota_fiscal())
+            peso_bruto += float(arquivo.get_peso_bruto())
+            peso_liquido += float(arquivo.get_peso_liquido())
+
+            for produto in arquivo.get_produtos():
+                try:
+                    quantidade = float(todos_produtos[produto.get_codigo_fabrica()].get_quantidade()) + float(produto.get_quantidade())
+                    produto_novo = ProdutosDTO.ProdutosDTO(produto.get_codigo_fabrica(), produto.getDescricao(), produto.get_unidade(), quantidade, produto.get_codigo_barras())
+                    todos_produtos[produto.get_codigo_fabrica()] = produto_novo
+                    quantidade_total_produtos += quantidade
+                except:
+                    todos_produtos[produto.get_codigo_fabrica()] = produto
+                    quantidade_total_produtos += float(produto.get_quantidade())
+        for key in todos_produtos.keys():
+            produtos.append(todos_produtos[key])
+        
+        produtos_pdf = sorted(produtos, key=lambda x: x.get_descricao())
+
+        print(produtos_pdf)
+        print(notas_fiscais, peso_bruto, peso_liquido)
+
+        caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
+        pdf = GeradorPDF.GerarPDF(caminho)
+        pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf))
+        self.destroyConfirmatePDFCreate()
+
 
     def destroyConfirmatePDFCreate(self):
         self.confirmate_main.destroy()
@@ -237,7 +273,7 @@ class App:
         confirmation_title_label = Label(self.confirmate_main, text='Verifique os Produtos', font=self.fontes.tituloPaginaInicial())
 
         columns = ['id', 'nf', 'codigo_fabrica', 'descricao', 'quantidade']
-        self.products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings')
+        self.products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings', height=20)
 
         self.products_treeview.column( 0, anchor=W, width=300)
         self.products_treeview.column( 1, anchor=CENTER, width=100)
@@ -252,7 +288,7 @@ class App:
         self.products_treeview.heading('quantidade', text='Quantidade', anchor=CENTER)
 
         back_buton = Button(self.confirmate_main, text='Voltar', command=self.destroyConfirmatePDFCreate)
-        confirmate_button = Button(self.confirmate_main, text='Gerar PDF', width=20)
+        confirmate_button = Button(self.confirmate_main, text='Gerar PDF', width=20, command=self.geratePDF)
 
         confirmation_title_label.pack(pady=(20, 10))
         self.products_treeview.pack(padx=20, pady=20)
