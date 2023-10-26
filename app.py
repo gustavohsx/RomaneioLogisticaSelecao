@@ -90,7 +90,7 @@ class App:
         for recipient in data.keys():
             var = IntVar()
             recipient_checked_button = Checkbutton(self.checked_button_frame, text=recipient, variable=var)
-            recipient_checked_button.pack(anchor=W)
+            recipient_checked_button.pack(anchor=W, pady=2)
             self.checkbutton_vars.append(var)
         self.canvas.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.bind_all("<MouseWheel>", self.onMousewheel)
@@ -108,7 +108,7 @@ class App:
         except:
             print('Não foi possivel apagar o Canvas')
         self.main.update_idletasks()
-        self.canvas = Canvas(self.main)
+        self.canvas = Canvas(self.main, border=10)
         self.canvas.grid(column=0, row=4, sticky=NSEW, columnspan=4)
 
         self.scroll = Scrollbar(self.main, orient=VERTICAL, command=self.canvas.yview)
@@ -139,6 +139,7 @@ class App:
             if self.checkbutton_vars[i].get() == 1:
                 valores_selecionados.append(item)
         print(valores_selecionados)
+        self.confirmatePDFCreate()
 
 
     def setValuesCheckbuttonTrue(self):
@@ -159,21 +160,39 @@ class App:
 
         label = Label(self.main, text='Lista de Separação', font=self.fontes.tituloPaginaInicial())
 
-        archive_select_label = Label(self.main, text='Selecione os Arquivos: ', font=self.fontes.label12())
-        archive_select_button = Button(self.main, text='Selecionar Arquivos', command=self.getData)
+        selections_frame = Frame(self.main)
+        archive_select_label = Label(selections_frame, text='Selecione os Arquivos: ', font=self.fontes.label12())
+        archive_select_button = Button(selections_frame, text='Selecionar Arquivos', command=self.getData)
 
-        filter_select_label = Label(self.main, text='Selecione o Tipo de Filtragem: ', font=self.fontes.label12())
-        self.filter_select_combobox = Combobox(self.main, values=self.filter_type)
+        filter_select_label = Label(selections_frame, text='Selecione o Tipo de Filtragem: ', font=self.fontes.label12())
+        self.filter_select_combobox = Combobox(selections_frame, values=self.filter_type)
         self.filter_select_combobox.set(self.filter_type[0])
         self.filter_select_combobox.bind("<<ComboboxSelected>>", self.changeShowDataFiltered)
         
         label.grid(column=0, row=0, columnspan=3, pady=(10, 30))
-        archive_select_label.grid(column=1, row=1, sticky=W)
-        archive_select_button.grid(column=2, row=1, sticky=NSEW)
-        filter_select_label.grid(column=1, row=2, sticky=W, padx=(0, 5), pady=(5, 20))
-        self.filter_select_combobox.grid(column=2, row=2, pady=(5, 20))
+
+        archive_select_label.grid(column=0, row=0, sticky=W)
+        archive_select_button.grid(column=1, row=0, sticky=NSEW)
+        filter_select_label.grid(column=0, row=1, sticky=W, padx=(0, 5), pady=(5, 20))
+        self.filter_select_combobox.grid(column=1, row=1, pady=(5, 20))
+
+        selections_frame.grid(column=0, row=1, columnspan=3)
 
         self.main.pack()
+    
+
+    def confirmatePDFCreate(self):
+        self.confirmate_main = Toplevel(self.main)
+
+        columns = ['', 'codigo_fabrica', 'descricao', 'quantidade']
+        products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings')
+
+        products_treeview.heading(0, text='', anchor=CENTER)
+        products_treeview.heading('codigo_fabrica', text='Código de Fabrica', anchor=CENTER)
+        products_treeview.heading('descricao', text='Descrição', anchor=CENTER)
+        products_treeview.heading('quantidade', text='Quantidade', anchor=CENTER)
+
+        products_treeview.pack()
 
 
 tk = Tk()
