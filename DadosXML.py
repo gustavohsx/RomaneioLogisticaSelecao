@@ -12,14 +12,14 @@ class DadosXML:
 
     def dados(self):
         with open(self._xml) as arquivo:
-            dados = xmltodict.parse(arquivo.read())
-            nota_fiscal = dados['nfeProc']['NFe']['infNFe']['ide']['nNF']
-            dados_destinatario = dados['nfeProc']['NFe']['infNFe']['dest']
-            dados_produtos = dados['nfeProc']['NFe']['infNFe']['det']
-            peso_bruto = dados['nfeProc']['NFe']['infNFe']['transp']['vol']['pesoB']
-            peso_liquido = dados['nfeProc']['NFe']['infNFe']['transp']['vol']['pesoL']
-
-            self.destinatario = self.dadosDestinatario(nota_fiscal, dados_destinatario, peso_bruto, peso_liquido)
+            self.dados = xmltodict.parse(arquivo.read())
+            nota_fiscal = self.dados['nfeProc']['NFe']['infNFe']['ide']['nNF']
+            dados_destinatario = self.dados['nfeProc']['NFe']['infNFe']['dest']
+            dados_produtos = self.dados['nfeProc']['NFe']['infNFe']['det']
+            peso_bruto = self.dados['nfeProc']['NFe']['infNFe']['transp']['vol']['pesoB']
+            peso_liquido = self.dados['nfeProc']['NFe']['infNFe']['transp']['vol']['pesoL']
+            valor_pagamento = self.dados['nfeProc']['NFe']['infNFe']['pag']['detPag']['vPag']
+            self.destinatario = self.dadosDestinatario(nota_fiscal, dados_destinatario, peso_bruto, peso_liquido, valor_pagamento)
 
             tipo_dados_produtos = type(dados_produtos)
 
@@ -33,9 +33,8 @@ class DadosXML:
         return self.destinatario
     
 
-    def dadosDestinatario(self, nota_fiscal, dados_destinatario, peso_bruto, peso_liquido):
-        
-         return DestinatarioDTO.DestinatarioDTO(
+    def dadosDestinatario(self, nota_fiscal, dados_destinatario, peso_bruto, peso_liquido, valor_pagamento):
+        return DestinatarioDTO.DestinatarioDTO(
             nota_fiscal = nota_fiscal, 
             nome = dados_destinatario['xNome'], 
             cnpj = dados_destinatario['CNPJ'], 
@@ -46,7 +45,8 @@ class DadosXML:
             municipio = dados_destinatario['enderDest']['xMun'], 
             uf = dados_destinatario['enderDest']['UF'], 
             cep = dados_destinatario['enderDest']['CEP'], 
-            pais = dados_destinatario['enderDest']['cPais'], 
+            pais = dados_destinatario['enderDest']['cPais'],
+            valor_pagamento = valor_pagamento,
             peso_bruto = peso_bruto, 
             peso_liquido = peso_liquido
         )

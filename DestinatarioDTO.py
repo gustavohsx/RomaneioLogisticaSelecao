@@ -1,6 +1,6 @@
 class DestinatarioDTO:
 
-    def __init__(self, nota_fiscal, nome, cnpj, longradouro, numero, bairro, codigo_municipio, municipio, uf, cep, pais, peso_bruto, peso_liquido):
+    def __init__(self, nota_fiscal, nome, cnpj, longradouro, numero, bairro, codigo_municipio, municipio, uf, cep, pais, peso_bruto, peso_liquido, valor_pagamento):
         self._nota_fiscal = nota_fiscal
         self._nome = nome
         self._cnpj = cnpj
@@ -14,6 +14,7 @@ class DestinatarioDTO:
         self._pais = pais
         self._peso_bruto = peso_bruto
         self._peso_liquido = peso_liquido
+        self.valor_pagamento = valor_pagamento
         self._produtos = []
 
     # Getters
@@ -59,6 +60,9 @@ class DestinatarioDTO:
     def get_produtos(self):
         return self._produtos
 
+    def get_valor_pagamento(self):
+        return self.valor_pagamento
+
     # Setters
     def set_nota_fiscal(self, nota_fiscal):
         self._nota_fiscal = nota_fiscal
@@ -98,6 +102,9 @@ class DestinatarioDTO:
 
     def set_peso_liquido(self, peso_liquido):
         self._peso_liquido = peso_liquido
+    
+    def set_valor_pagamento(self, valor_pagamento):
+        self.valor_pagamento = valor_pagamento
     
     def adicionarProdutos(self, produto):
         self._produtos.append(produto)

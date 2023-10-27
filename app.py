@@ -208,33 +208,50 @@ class App:
         notas_fiscais = []
         quantidade_total_produtos = 0
         produtos = []
+        informacoes = {}
         for arquivo in self.selected_products:
             notas_fiscais.append(arquivo.get_nota_fiscal())
             peso_bruto += float(arquivo.get_peso_bruto())
             peso_liquido += float(arquivo.get_peso_liquido())
 
+            try:
+                informacoes[arquivo.get_municipio()]['peso_bruto'] += peso_bruto
+                informacoes[arquivo.get_municipio()]['peso_liquido'] += peso_liquido
+                informacoes[arquivo.get_municipio()]['notas_fiscais'].append(arquivo.get_nota_fiscal())
+                informacoes[arquivo.get_municipio()]['valor'] += float(arquivo.get_valor_pagamento())
+            except Exception as e:
+                print(e)
+                informacoes[arquivo.get_municipio()] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0}
+                informacoes[arquivo.get_municipio()]['peso_bruto'] += peso_bruto
+                informacoes[arquivo.get_municipio()]['peso_liquido'] += peso_liquido
+                informacoes[arquivo.get_municipio()]['notas_fiscais'].append(arquivo.get_nota_fiscal())
+                informacoes[arquivo.get_municipio()]['valor'] += float(arquivo.get_valor_pagamento())
             for produto in arquivo.get_produtos():
                 try:
-                    quantidade = todos_produtos[produto.get_codigo_fabrica()].get_quantidade() + produto.get_quantidade()
-                    # mexer aqui não esta somando a quantidade
-                    produto_novo = ProdutosDTO.ProdutosDTO(codigo_fabrica=produto.get_codigo_fabrica(), descricao=produto.getDescricao(), unidade=produto.get_unidade(), quantidade=quantidade, codigo_barras=produto.get_codigo_barras())
-                    todos_produtos[produto.get_codigo_fabrica()] = produto_novo
-                    quantidade_total_produtos += quantidade
+                    codigo = produto.get_codigo_fabrica()
+                    quantidade = float(todos_produtos[codigo].get_quantidade()) + float(produto.get_quantidade())
+                    produto_novo = ProdutosDTO.ProdutosDTO(codigo_fabrica=produto.get_codigo_fabrica(), ean=produto.get_ean(), ean_tributavel=produto.get_ean_tributavel(), ncm=produto.get_ncm(), cest=produto.get_cest(), cfop=produto.get_cfop(), descricao=produto.get_descricao(), unidade=produto.get_unidade(), quantidade=quantidade, codigo_barras=produto.get_codigo_barras(), v_un_com=produto.get_v_un_com(), v_prod=produto.get_v_prod(), u_trib=produto.get_u_trib(), q_trib=produto.get_q_trib(), v_un_trib=produto.get_v_un_trib(), ind_tot=produto.get_ind_tot)
+                    todos_produtos[codigo] = produto_novo
+                except Exception as e:
+                    codigo = produto.get_codigo_fabrica()
+                    todos_produtos[codigo] = produto
+                try:
+                    informacoes[arquivo.get_municipio()]['quantidade_produtos_sku'][codigo] += 1
                 except:
-                    todos_produtos[produto.get_codigo_fabrica()] = produto
-                    quantidade_total_produtos += float(produto.get_quantidade())
+                    informacoes[arquivo.get_municipio()]['quantidade_produtos_sku'][codigo] = 1
+                quantidade_total_produtos += float(produto.get_quantidade())
+                informacoes[arquivo.get_municipio()]['quantidade_itens'] += float(produto.get_quantidade())
         for key in todos_produtos.keys():
             produtos.append(todos_produtos[key])
         
         produtos_pdf = sorted(produtos, key=lambda x: x.get_descricao())
 
-        print(produtos_pdf)
         print(notas_fiscais, peso_bruto, peso_liquido)
 
         caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
         if caminho != '':
             pdf = GeradorPDF.GerarPDF(caminho)
-            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf))
+            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf), informacoes=informacoes)
             self.message.sucessPDFCreate()
             self.destroyConfirmatePDFCreate()
         else:
