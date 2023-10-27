@@ -215,15 +215,15 @@ class App:
             peso_liquido += float(arquivo.get_peso_liquido())
 
             try:
-                informacoes[arquivo.get_municipio()]['peso_bruto'] += peso_bruto
-                informacoes[arquivo.get_municipio()]['peso_liquido'] += peso_liquido
+                informacoes[arquivo.get_municipio()]['peso_bruto'] += float(arquivo.get_peso_bruto())
+                informacoes[arquivo.get_municipio()]['peso_liquido'] += float(arquivo.get_peso_liquido())
                 informacoes[arquivo.get_municipio()]['notas_fiscais'].append(arquivo.get_nota_fiscal())
                 informacoes[arquivo.get_municipio()]['valor'] += float(arquivo.get_valor_pagamento())
             except Exception as e:
                 print(e)
                 informacoes[arquivo.get_municipio()] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0}
-                informacoes[arquivo.get_municipio()]['peso_bruto'] += peso_bruto
-                informacoes[arquivo.get_municipio()]['peso_liquido'] += peso_liquido
+                informacoes[arquivo.get_municipio()]['peso_bruto'] += float(arquivo.get_peso_bruto())
+                informacoes[arquivo.get_municipio()]['peso_liquido'] += float(arquivo.get_peso_liquido())
                 informacoes[arquivo.get_municipio()]['notas_fiscais'].append(arquivo.get_nota_fiscal())
                 informacoes[arquivo.get_municipio()]['valor'] += float(arquivo.get_valor_pagamento())
             for produto in arquivo.get_produtos():

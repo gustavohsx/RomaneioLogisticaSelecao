@@ -150,14 +150,16 @@ class GerarPDF():
         self.pdf.drawRightString(555, y, f'{int(quantidade_itens)}')
 
     def informacoesUltimaPagina(self, y, peso_bruto, peso_liquido, quantidade_total, quantidade_sku):
+        peso_bruto_ref = locale.format_string("%.2f", float(peso_bruto), grouping=True)
+        peso_liquido_ref = locale.format_string("%.2f", float(peso_liquido), grouping=True)
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(35, y-10, f'Peso Bruto:')
         self.pdf.setFont('Helvetica', 10)
-        self.pdf.drawString(100, y-10, f'{peso_bruto:.3f} kg')
+        self.pdf.drawString(100, y-10, f'{peso_bruto_ref} kg')
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(200, y-10, f'Peso Liquido:')
         self.pdf.setFont('Helvetica', 10)
-        self.pdf.drawString(270, y-10, f'{peso_liquido:.3f} kg')
+        self.pdf.drawString(270, y-10, f'{peso_liquido_ref} kg')
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(360, y-10, f'{int(quantidade_sku)} produtos listados')
         self.pdf.drawString(490, y-10, f'{int(quantidade_total)} itens')
