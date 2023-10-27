@@ -97,13 +97,13 @@ class GerarPDF():
         self.pdf.drawString(230, 755, 'Resumo Romaneio')
 
         self.pdf.setFont('Helvetica-Bold', 10)
-        self.pdf.drawString(100, 700, 'Razão Social / Cidade')
+        self.pdf.drawString(150, 700, 'Razão Social')
         # self.pdf.drawString(180, 700, 'Qt.Pedidos')
-        self.pdf.drawString(285, 700, 'Qt.Pedidos')
-        self.pdf.drawString(355, 700, 'Valor')
-        self.pdf.drawString(415, 700, 'Peso Bruto')
-        self.pdf.drawString(480, 700, 'Qt.SKU')
-        self.pdf.drawString(530, 700, 'Qt.Itens')
+        # self.pdf.drawString(285, 700, 'Qt.Pedidos')
+        self.pdf.drawString(350, 700, 'Cidade')
+        self.pdf.drawString(395, 700, 'Qt.Pedidos')
+        self.pdf.drawString(460, 700, 'Peso Bruto')
+        self.pdf.drawString(525, 700, 'Qt.Caixas')
 
         self.pdf.line(30, 695, 575, 695)
         self.pdf.setFont('Helvetica', 10)
@@ -124,26 +124,26 @@ class GerarPDF():
             qt_pedidos_total += len(informacoes[key]["notas_fiscais"])
             valor_total += informacoes[key]["valor"]
             peso_bruto_total += informacoes[key]["peso_bruto"]
+            nome, cidade = key.split(' / ')
+            nome = nome
             somar = False
             vezes = 1
-            if len(key) < 41:
-                self.pdf.drawString(35, y, f'{key}')
-                somar = False
-            elif len(key) < 79:
-                self.pdf.drawString(35, y, f'{key[:41]}')
-                self.pdf.drawString(35, y-10, f'{key[41:79]}')
-                somar = True
-                vezes = 2
+            if len(nome) < 50:
+                self.pdf.setFont('Helvetica', 10)
+                self.pdf.drawString(35, y, f'{nome}')
+            elif len(nome) < 55:
+                self.pdf.setFont('Helvetica', 9)
+                self.pdf.drawString(35, y, f'{nome}')
+            elif len(nome) < 61:
+                self.pdf.setFont('Helvetica', 8)
+                self.pdf.drawString(35, y, f'{nome}')
             else:
-                self.pdf.drawString(35, y, f'{key[:41]}')
-                self.pdf.drawString(35, y-10, f'{key[41:79]}')
-                self.pdf.drawString(35, y-10, f'{key[79:]}')
-                somar = True
-                vezes = 3
-            self.pdf.drawRightString(320, y, f'{len(informacoes[key]["notas_fiscais"])}')
-            self.pdf.drawRightString(400, y, f'R$ {valor}')
-            self.pdf.drawRightString(470, y, f'{peso_bruto} kg')
-            self.pdf.drawRightString(515, y, f'{len(informacoes[key]["quantidade_produtos_sku"])}')
+                self.pdf.setFont('Helvetica', 7)
+                self.pdf.drawString(35, y, f'{nome}')
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(345, y, f'{cidade}')
+            self.pdf.drawRightString(430, y, f'{len(informacoes[key]["notas_fiscais"])}')
+            self.pdf.drawRightString(515, y, f'{peso_bruto} kg')
             self.pdf.drawRightString(555, y, f'{int(informacoes[key]["quantidade_itens"])}')
             if somar:
                 y -= (15 * vezes) - 5
@@ -166,10 +166,10 @@ class GerarPDF():
         y -= 5
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(35, y, 'Total:')
-        self.pdf.drawRightString(320, y, f'{qt_pedidos_total}')
-        self.pdf.drawRightString(400, y, f'R$ {valor_total}')
-        self.pdf.drawRightString(470, y, f'{peso_bruto_total} kg')
-        self.pdf.drawRightString(515, y, f'{quantidade_sku}')
+        # self.pdf.drawRightString(320, y, f'{qt_pedidos_total}')
+        # self.pdf.drawRightString(400, y, f'R$ {valor_total}')
+        self.pdf.drawRightString(430, y, f'{qt_pedidos_total}')
+        self.pdf.drawRightString(515, y, f'{peso_bruto_total} kg')
         self.pdf.drawRightString(555, y, f'{int(quantidade_itens)}')
 
     def informacoesUltimaPagina(self, y, peso_bruto, peso_liquido, quantidade_total, quantidade_sku):
@@ -185,7 +185,7 @@ class GerarPDF():
         self.pdf.drawString(270, y-10, f'{peso_liquido_ref} kg')
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(360, y-10, f'{int(quantidade_sku)} produtos listados')
-        self.pdf.drawString(490, y-10, f'{int(quantidade_total)} itens')
+        self.pdf.drawString(490, y-10, f'{int(quantidade_total)} caixas')
 
     def adicionarProdutosPaginaInicial(self, produtos, notas_fiscais=0, numero_pagina=1, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, ultima_pagina=False, quant_paginas=1):
         self.pdf.setFont('Helvetica-Bold', 10)
