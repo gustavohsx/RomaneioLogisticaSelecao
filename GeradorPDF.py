@@ -85,10 +85,10 @@ class GerarPDF():
     def adicionarImagemFundo(self):
         self.pdf.drawImage('logo_fundo.png', 35, 190, 500, 400)
     
-    def gerarResumo(self, informacoes, quantidade_sku, quantidade_itens):
-        
+    def cabecalhoResumo(self, pagina):
         self.pdf.setFont('Helvetica-Bold', 12)
         self.adicionarHora()
+        self.pdf.drawString(500, 800, f'Página: {pagina}')
         self.adicionarImagemFundo()
         self.pdf.setFont('Helvetica-Bold', 18)
         self.pdf.drawString(190, 795, 'SPESSOA DISTRIBUIDOR')
@@ -97,55 +97,78 @@ class GerarPDF():
         self.pdf.drawString(230, 755, 'Resumo Romaneio')
 
         self.pdf.setFont('Helvetica-Bold', 10)
-        self.pdf.drawString(100, 700, 'Praça')
-        self.pdf.drawString(180, 700, 'Qt.Pedidos')
-        self.pdf.drawString(260, 700, 'Valor')
-        self.pdf.drawString(320, 700, 'Peso Bruto')
-        self.pdf.drawString(400, 700, 'Peso Liquido')
+        self.pdf.drawString(100, 700, 'Razão Social / Cidade')
+        # self.pdf.drawString(180, 700, 'Qt.Pedidos')
+        self.pdf.drawString(285, 700, 'Qt.Pedidos')
+        self.pdf.drawString(355, 700, 'Valor')
+        self.pdf.drawString(415, 700, 'Peso Bruto')
         self.pdf.drawString(480, 700, 'Qt.SKU')
         self.pdf.drawString(530, 700, 'Qt.Itens')
 
         self.pdf.line(30, 695, 575, 695)
-        
         self.pdf.setFont('Helvetica', 10)
+    
+    def gerarResumo(self, informacoes, quantidade_sku, quantidade_itens):
+        
+        numero_pagina = 1
+        self.cabecalhoResumo(numero_pagina)
 
         y = 680
         qt_pedidos_total = 0
         valor_total = 0
         peso_bruto_total = 0
-        peso_liquido_total = 0
-        for cidade in informacoes.keys():
-            peso_bruto = locale.format_string("%.2f", informacoes[cidade]["peso_bruto"], grouping=True)
-            peso_liquido = locale.format_string("%.2f", informacoes[cidade]["peso_liquido"], grouping=True)
-            valor = locale.format_string("%.2f", informacoes[cidade]["valor"], grouping=True)
+        for key in informacoes.keys():
+            peso_bruto = locale.format_string("%.2f", informacoes[key]["peso_bruto"], grouping=True)
+            valor = locale.format_string("%.2f", informacoes[key]["valor"], grouping=True)
 
-            qt_pedidos_total += len(informacoes[cidade]["notas_fiscais"])
-            valor_total += informacoes[cidade]["valor"]
-            peso_bruto_total += informacoes[cidade]["peso_bruto"]
-            peso_liquido_total += informacoes[cidade]["peso_liquido"]
-
-            self.pdf.drawString(35, y, f'{cidade}')
-            self.pdf.drawRightString(210, y, f'{len(informacoes[cidade]["notas_fiscais"])}')
-            self.pdf.drawRightString(305, y, f'R$ {valor}')
-            self.pdf.drawRightString(375, y, f'{peso_bruto} kg')
-            self.pdf.drawRightString(455, y, f'{peso_liquido} kg')
-            self.pdf.drawRightString(515, y, f'{len(informacoes[cidade]["quantidade_produtos_sku"])}')
-            self.pdf.drawRightString(555, y, f'{int(informacoes[cidade]["quantidade_itens"])}')
-            y -= 15
+            qt_pedidos_total += len(informacoes[key]["notas_fiscais"])
+            valor_total += informacoes[key]["valor"]
+            peso_bruto_total += informacoes[key]["peso_bruto"]
+            somar = False
+            vezes = 1
+            if len(key) < 41:
+                self.pdf.drawString(35, y, f'{key}')
+                somar = False
+            elif len(key) < 79:
+                self.pdf.drawString(35, y, f'{key[:41]}')
+                self.pdf.drawString(35, y-10, f'{key[41:79]}')
+                somar = True
+                vezes = 2
+            else:
+                self.pdf.drawString(35, y, f'{key[:41]}')
+                self.pdf.drawString(35, y-10, f'{key[41:79]}')
+                self.pdf.drawString(35, y-10, f'{key[79:]}')
+                somar = True
+                vezes = 3
+            self.pdf.drawRightString(320, y, f'{len(informacoes[key]["notas_fiscais"])}')
+            self.pdf.drawRightString(400, y, f'R$ {valor}')
+            self.pdf.drawRightString(470, y, f'{peso_bruto} kg')
+            self.pdf.drawRightString(515, y, f'{len(informacoes[key]["quantidade_produtos_sku"])}')
+            self.pdf.drawRightString(555, y, f'{int(informacoes[key]["quantidade_itens"])}')
+            if somar:
+                y -= (15 * vezes) - 5
+            else:
+                y -= 15
+            if y <= 40:
+                self.pdf.line(30, y+10, 575, y+10)
+                self.pdf.showPage()
+                numero_pagina += 1
+                self.cabecalhoResumo(numero_pagina)
+                y = 680
+            else:
+                print('não sei', y)
         
         self.pdf.line(30, y+10, 575, y+10)
 
         valor_total = locale.format_string("%.2f", valor_total, grouping=True)
         peso_bruto_total = locale.format_string("%.2f", peso_bruto_total, grouping=True)
-        peso_liquido_total = locale.format_string("%.2f", peso_liquido_total, grouping=True)
 
         y -= 5
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(35, y, 'Total:')
-        self.pdf.drawRightString(210, y, f'{qt_pedidos_total}')
-        self.pdf.drawRightString(305, y, f'R$ {valor_total}')
-        self.pdf.drawRightString(375, y, f'{peso_bruto_total} kg')
-        self.pdf.drawRightString(455, y, f'{peso_liquido_total} kg')
+        self.pdf.drawRightString(320, y, f'{qt_pedidos_total}')
+        self.pdf.drawRightString(400, y, f'R$ {valor_total}')
+        self.pdf.drawRightString(470, y, f'{peso_bruto_total} kg')
         self.pdf.drawRightString(515, y, f'{quantidade_sku}')
         self.pdf.drawRightString(555, y, f'{int(quantidade_itens)}')
 

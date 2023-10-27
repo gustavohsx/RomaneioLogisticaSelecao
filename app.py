@@ -177,9 +177,14 @@ class App:
         else:
             self.message.unselectedItens()
 
+
     def sortByName(self, e):
         return e.get_nome()
 
+
+    def sortByMunicipio(self, e):
+        return e.split(' / ')[1]
+    
 
     def setValuesCheckbuttonTrue(self):
         for i, item in enumerate(self.data.keys()):
@@ -215,17 +220,17 @@ class App:
             peso_liquido += float(arquivo.get_peso_liquido())
 
             try:
-                informacoes[arquivo.get_municipio()]['peso_bruto'] += float(arquivo.get_peso_bruto())
-                informacoes[arquivo.get_municipio()]['peso_liquido'] += float(arquivo.get_peso_liquido())
-                informacoes[arquivo.get_municipio()]['notas_fiscais'].append(arquivo.get_nota_fiscal())
-                informacoes[arquivo.get_municipio()]['valor'] += float(arquivo.get_valor_pagamento())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
             except Exception as e:
-                print(e)
-                informacoes[arquivo.get_municipio()] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0}
-                informacoes[arquivo.get_municipio()]['peso_bruto'] += float(arquivo.get_peso_bruto())
-                informacoes[arquivo.get_municipio()]['peso_liquido'] += float(arquivo.get_peso_liquido())
-                informacoes[arquivo.get_municipio()]['notas_fiscais'].append(arquivo.get_nota_fiscal())
-                informacoes[arquivo.get_municipio()]['valor'] += float(arquivo.get_valor_pagamento())
+                # print(e)
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}'] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0}
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
             for produto in arquivo.get_produtos():
                 try:
                     codigo = produto.get_codigo_fabrica()
@@ -236,28 +241,29 @@ class App:
                     codigo = produto.get_codigo_fabrica()
                     todos_produtos[codigo] = produto
                 try:
-                    informacoes[arquivo.get_municipio()]['quantidade_produtos_sku'][codigo] += 1
+                    informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] += 1
                 except:
-                    informacoes[arquivo.get_municipio()]['quantidade_produtos_sku'][codigo] = 1
+                    informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] = 1
                 quantidade_total_produtos += float(produto.get_quantidade())
-                informacoes[arquivo.get_municipio()]['quantidade_itens'] += float(produto.get_quantidade())
+                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_itens'] += float(produto.get_quantidade())
         for key in todos_produtos.keys():
             produtos.append(todos_produtos[key])
         
         produtos_pdf = sorted(produtos, key=lambda x: x.get_descricao())
 
         print(notas_fiscais, peso_bruto, peso_liquido)
+        informacoes_ref = dict(sorted(informacoes.items(), key=lambda item: item[0].split(' / ')[1]))
 
+        print('-'*20, '\n', informacoes_ref.items(), '\n', '-'*20)
         caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
         if caminho != '':
             pdf = GeradorPDF.GerarPDF(caminho)
-            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf), informacoes=informacoes)
+            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf), informacoes=informacoes_ref)
             self.message.sucessPDFCreate()
             self.destroyConfirmatePDFCreate()
         else:
             self.message.unsucessPDFCreate()
             self.confirmate_main.focus_set()
-
 
     def destroyConfirmatePDFCreate(self):
         self.confirmate_main.destroy()
