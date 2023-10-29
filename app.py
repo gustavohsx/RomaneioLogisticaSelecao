@@ -85,6 +85,7 @@ class App:
             except:
                 self.data[recipient.get_municipio()] = []
                 self.data[recipient.get_municipio()].append(recipient)
+        self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))
         self.createCheckedButtonAndViewData(self.data)
 
 
@@ -96,6 +97,7 @@ class App:
             except:
                 self.data[recipient.get_nome()] = []
                 self.data[recipient.get_nome()].append(recipient)
+        self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))
         self.createCheckedButtonAndViewData(self.data)
 
 
@@ -180,10 +182,6 @@ class App:
 
     def sortByName(self, e):
         return e.get_nome()
-
-
-    def sortByMunicipio(self, e):
-        return e.split(' / ')[1]
     
 
     def setValuesCheckbuttonTrue(self):
