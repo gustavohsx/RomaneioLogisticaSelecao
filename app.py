@@ -180,6 +180,10 @@ class App:
             self.message.unselectedItens()
 
 
+    def getTypeReport(self):
+        return int(self.radiobutton_var.get())
+    
+
     def sortByName(self, e):
         return e.get_nome()
     
@@ -216,19 +220,19 @@ class App:
             notas_fiscais.append(arquivo.get_nota_fiscal())
             peso_bruto += float(arquivo.get_peso_bruto())
             peso_liquido += float(arquivo.get_peso_liquido())
+            total_produtos_nota = 0
 
             try:
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
+                # informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
             except Exception as e:
-                # print(e)
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}'] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0}
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}'] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0, 'endereco': ''}
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
+                # informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
             for produto in arquivo.get_produtos():
                 try:
                     codigo = produto.get_codigo_fabrica()
@@ -239,24 +243,30 @@ class App:
                     codigo = produto.get_codigo_fabrica()
                     todos_produtos[codigo] = produto
                 try:
-                    informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] += 1
+                    informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] += 1
                 except:
-                    informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] = 1
+                    informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] = 1
                 quantidade_total_produtos += float(produto.get_quantidade())
-                informacoes[f'{arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_itens'] += float(produto.get_quantidade())
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_itens'] += float(produto.get_quantidade())
+                total_produtos_nota += float(produto.get_quantidade())
+            informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(f'{arquivo.get_nota_fiscal()} / {arquivo.get_peso_bruto()} / {total_produtos_nota}')
+            informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['endereco'] = f'{arquivo.get_longradouro()} / {arquivo.get_numero_estabelecimento()} / {arquivo.get_bairro()} / {arquivo.get_uf()}'
         for key in todos_produtos.keys():
             produtos.append(todos_produtos[key])
         
         produtos_pdf = sorted(produtos, key=lambda x: x.get_descricao())
 
         print(notas_fiscais, peso_bruto, peso_liquido)
-        informacoes_ref = dict(sorted(informacoes.items(), key=lambda item: item[0].split(' / ')[1]))
+        informacoes_ref = dict(sorted(informacoes.items(), key=lambda item: item[0].split(' / ')[2]))
+        
+        for item in informacoes_ref.items():
+            print('-'*20, '\n', item, '\n', '-'*20)
 
-        print('-'*20, '\n', informacoes_ref.items(), '\n', '-'*20)
+        type_report = self.getTypeReport()
         caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
         if caminho != '':
             pdf = GeradorPDF.GerarPDF(caminho)
-            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf), informacoes=informacoes_ref)
+            pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf), informacoes=informacoes_ref, tipo_relatorio=type_report)
             self.message.sucessPDFCreate()
             self.destroyConfirmatePDFCreate()
         else:
@@ -320,8 +330,14 @@ class App:
         back_buton = Button(self.confirmate_main, text='Voltar', command=self.destroyConfirmatePDFCreate)
         confirmate_button = Button(self.confirmate_main, text='Gerar PDF', width=20, command=self.geratePDF)
 
+        self.radiobutton_var = IntVar()
+        type_report_cidade_radiobutton = Radiobutton(self.confirmate_main, text='Cidade', variable=self.radiobutton_var, value=0, command=self.getTypeReport)
+        type_report_complete_radiobutton = Radiobutton(self.confirmate_main, text='Completo', variable=self.radiobutton_var, value=1, command=self.getTypeReport)
+
         confirmation_title_label.pack(pady=(20, 10))
         self.products_treeview.pack(padx=20, pady=20)
+        type_report_cidade_radiobutton.pack()
+        type_report_complete_radiobutton.pack()
         back_buton.pack()
         confirmate_button.pack(pady=(10, 20))
 

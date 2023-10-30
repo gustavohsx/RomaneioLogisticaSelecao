@@ -113,6 +113,17 @@ class GerarPDF():
         numero_pagina = 1
         self.cabecalhoResumo(numero_pagina)
 
+        self.pdf.setFont('Helvetica-Bold', 12)
+        self.adicionarHora()
+        # self.pdf.drawString(500, 800, f'Página: {pagina}')
+        self.adicionarImagemFundo()
+        self.pdf.setFont('Helvetica-Bold', 18)
+        self.pdf.drawString(190, 795, 'SPESSOA DISTRIBUIDOR')
+
+        self.pdf.setFont('Helvetica-Bold', 16)
+        self.pdf.drawString(180, 755, 'Resumo Romaneio - Completo')
+        self.pdf.line(30, 695, 575, 695)
+
         y = 680
         qt_pedidos_total = 0
         valor_total = 0
@@ -124,7 +135,10 @@ class GerarPDF():
             qt_pedidos_total += len(informacoes[key]["notas_fiscais"])
             valor_total += informacoes[key]["valor"]
             peso_bruto_total += informacoes[key]["peso_bruto"]
-            nome, cidade = key.split(' / ')
+            cnpj, nome, cidade = key.split(' / ')
+            for i in informacoes[key]['notas_fiscais']:
+                numero_nota, peso_bruto_nota, qt_pedido_total_nota = i.split(' / ')
+                print(numero_nota, peso_bruto_nota, qt_pedido_total_nota)
             nome = nome
             somar = False
             vezes = 1
@@ -141,7 +155,13 @@ class GerarPDF():
                 self.pdf.setFont('Helvetica', 7)
                 self.pdf.drawString(35, y, f'{nome}')
             self.pdf.setFont('Helvetica', 10)
-            self.pdf.drawString(345, y, f'{cidade}')
+            if len(cidade) < 9:
+                self.pdf.drawString(345, y, f'{cidade}')
+            else:
+                self.pdf.setFont('Helvetica', 7)
+                self.pdf.drawString(345, y+5, f'{cidade[:10]}')
+                self.pdf.drawString(345, y-5, f'{cidade[10:]}')
+            self.pdf.setFont('Helvetica', 10)
             self.pdf.drawRightString(430, y, f'{len(informacoes[key]["notas_fiscais"])}')
             self.pdf.drawRightString(515, y, f'{peso_bruto} kg')
             self.pdf.drawRightString(555, y, f'{int(informacoes[key]["quantidade_itens"])}')
@@ -155,8 +175,6 @@ class GerarPDF():
                 numero_pagina += 1
                 self.cabecalhoResumo(numero_pagina)
                 y = 680
-            else:
-                print('não sei', y)
         
         self.pdf.line(30, y+10, 575, y+10)
 
@@ -171,6 +189,155 @@ class GerarPDF():
         self.pdf.drawRightString(430, y, f'{qt_pedidos_total}')
         self.pdf.drawRightString(515, y, f'{peso_bruto_total} kg')
         self.pdf.drawRightString(555, y, f'{int(quantidade_itens)}')
+
+    def cabecalhoResumoCompleto(self, pagina):
+        self.pdf.setFont('Helvetica-Bold', 12)
+        self.adicionarHora()
+        self.pdf.drawString(500, 800, f'Página: {pagina}')
+        # self.adicionarImagemFundo()
+        self.pdf.setFont('Helvetica-Bold', 18)
+        self.pdf.drawString(190, 795, 'SPESSOA DISTRIBUIDOR')
+
+        self.pdf.setFont('Helvetica-Bold', 16)
+        self.pdf.drawString(190, 755, 'Resumo Romaneio Completo')
+        self.pdf.line(30, 695, 575, 695)
+    
+    def gerarResumoCompleto(self, informacoes, quantidade_sku, quantidade_itens):
+        n_pagina = 1
+        self.cabecalhoResumoCompleto(n_pagina)
+        y = 680
+        qt_pedidos_total = 0
+        valor_total = 0
+        peso_bruto_total = 0
+        for key in informacoes.keys():
+            peso_bruto = locale.format_string("%.2f", informacoes[key]["peso_bruto"], grouping=True)
+            valor = locale.format_string("%.2f", informacoes[key]["valor"], grouping=True)
+
+            qt_pedidos_total += len(informacoes[key]["notas_fiscais"])
+            valor_total += informacoes[key]["valor"]
+            peso_bruto_total += informacoes[key]["peso_bruto"]
+            cnpj, nome, cidade = key.split(' / ')
+            longradouro, numero, bairro, uf = informacoes[key]["endereco"].split(' / ')
+            nome = nome
+
+            if y <= 80:
+                self.pdf.showPage()
+                n_pagina += 1
+                self.cabecalhoResumoCompleto(n_pagina)
+                y = 680
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(35, y, 'CNPJ:')
+            self.pdf.setFont('Helvetica-Bold', 10)
+            self.pdf.drawString(75, y, f'{cnpj}')
+
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(345, y, f'Endereço:')
+            endereco = f'{longradouro}, {numero} - {bairro}'
+            if len(endereco) < 31:
+                self.pdf.setFont('Helvetica-Bold', 10)
+                self.pdf.drawString(395, y, endereco)
+            elif len(endereco) < 35:
+                self.pdf.setFont('Helvetica-Bold', 9)
+                self.pdf.drawString(395, y, endereco)
+            elif len(endereco) < 39:
+                self.pdf.setFont('Helvetica-Bold', 8)
+                self.pdf.drawString(395, y, endereco)
+            elif len(endereco) < 43:
+                self.pdf.setFont('Helvetica-Bold', 7)
+                self.pdf.drawString(395, y, endereco)
+
+            y -= 15
+
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(35, y, f'Destinatário: ')
+            if len(nome) < 42:
+                self.pdf.setFont('Helvetica-Bold', 10)
+                self.pdf.drawString(95, y, f'{nome}')
+            elif len(nome) < 46:
+                self.pdf.setFont('Helvetica-Bold', 9)
+                self.pdf.drawString(95, y, f'{nome}')
+            elif len(nome) < 61:
+                self.pdf.setFont('Helvetica-Bold', 8)
+                self.pdf.drawString(95, y, f'{nome}')
+            else:
+                self.pdf.setFont('Helvetica-Bold', 7)
+                self.pdf.drawString(95, y, f'{nome}')
+
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(345, y, f'Cidade:')
+            self.pdf.setFont('Helvetica-Bold', 10)
+            self.pdf.drawString(395, y, f'{cidade} - {uf}')
+
+            y -= 15
+
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(35, y, f'Peso Total:')
+            self.pdf.setFont('Helvetica-Bold', 10)
+            self.pdf.drawRightString(145, y, f'{peso_bruto} kg')
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(250, y, f'Qt. Caixas:')
+            self.pdf.setFont('Helvetica-Bold', 10)
+            self.pdf.drawString(310, y, f'{int(float(quantidade_itens))}')
+
+            self.pdf.line(30, y-5, 575, y-5)
+            y -= 15
+
+            if y <= 40:
+                self.pdf.line(30, y+10, 575, y+10)
+                self.pdf.showPage()
+                n_pagina += 1
+                self.cabecalhoResumoCompleto(n_pagina)
+                y = 680
+
+            for i in informacoes[key]['notas_fiscais']:
+                self.pdf.line(30, y-5, 575, y-5)
+                numero_nota, peso_bruto_nota, qt_pedido_total_nota = i.split(' / ')
+                self.pdf.setFont('Helvetica', 10)
+                self.pdf.setFont('Helvetica', 10)
+                self.pdf.drawString(35, y, f'Nota:')
+                self.pdf.setFont('Helvetica-Bold', 10)
+                self.pdf.drawString(65, y, f'{numero_nota}')
+                self.pdf.setFont('Helvetica', 10)
+                self.pdf.drawString(150, y, f'Peso:')
+                self.pdf.setFont('Helvetica-Bold', 10)
+                self.pdf.drawString(180, y, f'{peso_bruto_nota}')
+                self.pdf.setFont('Helvetica', 10)
+                self.pdf.drawString(250, y, f'Qt. Caixas:')
+                self.pdf.setFont('Helvetica-Bold', 10)
+                self.pdf.drawString(310, y, f'{int(float(qt_pedido_total_nota))}')
+
+                y -= 15
+
+                if y <= 40:
+                    self.pdf.line(30, y+10, 575, y+10)
+                    self.pdf.showPage()
+                    n_pagina += 1
+                    self.cabecalhoResumoCompleto(n_pagina)
+                    y = 680
+            
+            y -= 10
+            
+            if y <= 40:
+                self.pdf.line(30, y+10, 575, y+10)
+                self.pdf.showPage()
+                n_pagina += 1
+                self.cabecalhoResumoCompleto(n_pagina)
+                y = 680
+        
+        # self.pdf.line(30, y+10, 575, y+10)
+
+        # valor_total = locale.format_string("%.2f", valor_total, grouping=True)
+        # peso_bruto_total = locale.format_string("%.2f", peso_bruto_total, grouping=True)
+
+        # y -= 5
+        # self.pdf.setFont('Helvetica-Bold', 10)
+        # self.pdf.drawString(35, y, 'Total:')
+        # # self.pdf.drawRightString(320, y, f'{qt_pedidos_total}')
+        # # self.pdf.drawRightString(400, y, f'R$ {valor_total}')
+        # self.pdf.drawRightString(430, y, f'{qt_pedidos_total}')
+        # self.pdf.drawRightString(515, y, f'{peso_bruto_total} kg')
+        # self.pdf.drawRightString(555, y, f'{int(quantidade_itens)}')
+        
 
     def informacoesUltimaPagina(self, y, peso_bruto, peso_liquido, quantidade_total, quantidade_sku):
         peso_bruto_ref = locale.format_string("%.2f", float(peso_bruto), grouping=True)
@@ -270,8 +437,11 @@ class GerarPDF():
         self.cabecalhoTabela(y=600)
         self.adicionarProdutosPaginaInicial(produtos=produtos, notas_fiscais=notas_fiscais, numero_pagina=numero_pagina, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, ultima_pagina=ultima_pagina, quant_paginas=quant_paginas)
 
-    def geraPDF(self, produtos, notas_fiscais=0, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, informacoes=None):
-        self.gerarResumo(informacoes, quantidade_sku, quantidade_total)
+    def geraPDF(self, produtos, notas_fiscais=0, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, informacoes=None, tipo_relatorio=0):
+        if tipo_relatorio == 0:
+            self.gerarResumo(informacoes, quantidade_sku, quantidade_total)
+        elif tipo_relatorio == 1:
+            self.gerarResumoCompleto(informacoes, quantidade_sku, quantidade_total)
 
         quant_paginas = (len(produtos)//35) + 1
         quant_inicial = 0
