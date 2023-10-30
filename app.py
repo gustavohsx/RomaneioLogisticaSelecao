@@ -264,6 +264,7 @@ class App:
 
         type_report = self.getTypeReport()
         caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
+        self.confirmate_main.focus_set()
         if caminho != '':
             pdf = GeradorPDF.GerarPDF(caminho)
             pdf.geraPDF(produtos=produtos_pdf, notas_fiscais=notas_fiscais, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total_produtos, quantidade_sku=len(produtos_pdf), informacoes=informacoes_ref, tipo_relatorio=type_report)
@@ -313,7 +314,7 @@ class App:
         confirmation_title_label = Label(self.confirmate_main, text='Verifique os Produtos', font=self.fontes.tituloPaginaInicial())
 
         columns = ['id', 'nf', 'codigo_fabrica', 'descricao', 'quantidade']
-        self.products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings', height=20)
+        self.products_treeview = Treeview(self.confirmate_main, columns=columns, show='headings', height=15)
 
         self.products_treeview.column( 0, anchor=W, width=300)
         self.products_treeview.column( 1, anchor=CENTER, width=100)
@@ -330,12 +331,14 @@ class App:
         back_buton = Button(self.confirmate_main, text='Voltar', command=self.destroyConfirmatePDFCreate)
         confirmate_button = Button(self.confirmate_main, text='Gerar PDF', width=20, command=self.geratePDF)
 
+        select_type_report_label = Label(self.confirmate_main, text='Selecione o tipo de Relatório:')
         self.radiobutton_var = IntVar()
         type_report_cidade_radiobutton = Radiobutton(self.confirmate_main, text='Cidade', variable=self.radiobutton_var, value=0, command=self.getTypeReport)
         type_report_complete_radiobutton = Radiobutton(self.confirmate_main, text='Completo', variable=self.radiobutton_var, value=1, command=self.getTypeReport)
 
         confirmation_title_label.pack(pady=(20, 10))
         self.products_treeview.pack(padx=20, pady=20)
+        select_type_report_label.pack()
         type_report_cidade_radiobutton.pack()
         type_report_complete_radiobutton.pack()
         back_buton.pack()
