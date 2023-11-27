@@ -149,7 +149,7 @@ class GerarPDF():
             else:
                 self.pdf.setFont('Helvetica', 7)
                 self.pdf.drawString(345, y+5, f'{cidade[:10]}')
-                self.pdf.drawString(345, y-5, f'{cidade[10:]}')
+                self.pdf.drawString(345, y-2, f'{cidade[10:]}')
             self.pdf.setFont('Helvetica', 10)
             self.pdf.drawRightString(430, y, f'{len(informacoes[key]["notas_fiscais"])}')
             self.pdf.drawRightString(515, y, f'{peso_bruto} kg')
@@ -448,7 +448,7 @@ class GerarPDF():
         elif tipo_relatorio == 1:
             self.gerarResumoCompleto(informacoes, quantidade_sku, quantidade_total)
 
-        quant_paginas = (len(produtos)//35) + 1
+        quant_paginas = (len(produtos)//27) + 1
         quant_inicial = 0
         quant_final = 27
         if quant_paginas == 1:

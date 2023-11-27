@@ -334,7 +334,7 @@ class App:
         select_type_report_label = Label(self.confirmate_main, text='Selecione o tipo de Relatório:')
         self.radiobutton_var = IntVar()
         type_report_cidade_radiobutton = Radiobutton(self.confirmate_main, text='Cidade', variable=self.radiobutton_var, value=0, command=self.getTypeReport)
-        type_report_complete_radiobutton = Radiobutton(self.confirmate_main, text='Completo', variable=self.radiobutton_var, value=1, command=self.getTypeReport)
+        type_report_complete_radiobutton = Radiobutton(self.confirmate_main, text='Detalhado', variable=self.radiobutton_var, value=1, command=self.getTypeReport)
 
         confirmation_title_label.pack(pady=(20, 10))
         self.products_treeview.pack(padx=20, pady=20)
