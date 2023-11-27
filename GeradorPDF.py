@@ -442,6 +442,12 @@ class GerarPDF():
         self.cabecalhoTabela(y=600)
         self.adicionarProdutosPaginaInicial(produtos=produtos, notas_fiscais=notas_fiscais, numero_pagina=numero_pagina, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, ultima_pagina=ultima_pagina, quant_paginas=quant_paginas)
 
+    """
+        PENSAR EM ALGO PARA GERAR A LISTA
+        EXEMPLO DE ERRO:
+            HÁ 133 PRODUTOS DIFERENTES, NA LISTA SÓ É GERADO 132. ISSO POR CONTA DA MANEIRA COMO ESTÁ SENDO FEITA
+            A CONTAGEM DE PAGINAS TOTAIS.
+    """
     def geraPDF(self, produtos, notas_fiscais=0, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, informacoes=None, tipo_relatorio=0):
         if tipo_relatorio == 0:
             self.gerarResumo(informacoes, quantidade_sku, quantidade_total)
