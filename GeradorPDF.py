@@ -447,6 +447,7 @@ class GerarPDF():
         EXEMPLO DE ERRO:
             HÁ 133 PRODUTOS DIFERENTES, NA LISTA SÓ É GERADO 132. ISSO POR CONTA DA MANEIRA COMO ESTÁ SENDO FEITA
             A CONTAGEM DE PAGINAS TOTAIS.
+        TALVEZ USAR ARREDONDAMENTO PARA CIMA E PARA BAIXO A DEPENDER DO NUMERO.
     """
     def geraPDF(self, produtos, notas_fiscais=0, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, informacoes=None, tipo_relatorio=0):
         if tipo_relatorio == 0:
