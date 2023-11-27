@@ -448,7 +448,11 @@ class GerarPDF():
         elif tipo_relatorio == 1:
             self.gerarResumoCompleto(informacoes, quantidade_sku, quantidade_total)
 
-        quant_paginas = (len(produtos)//27) + 1
+        if ((len(produtos)//35)==0):
+            quant_paginas = (len(produtos)//27) + 1
+        else:
+            quant_paginas = (len(produtos)//35) + 1
+        print(quant_paginas)
         quant_inicial = 0
         quant_final = 27
         if quant_paginas == 1:
