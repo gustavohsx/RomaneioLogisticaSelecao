@@ -98,8 +98,6 @@ class GerarPDF():
 
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(150, 700, 'Razão Social')
-        # self.pdf.drawString(180, 700, 'Qt.Pedidos')
-        # self.pdf.drawString(285, 700, 'Qt.Pedidos')
         self.pdf.drawString(350, 700, 'Cidade')
         self.pdf.drawString(395, 700, 'Qt.Pedidos')
         self.pdf.drawString(460, 700, 'Peso Bruto')
@@ -144,7 +142,7 @@ class GerarPDF():
                 self.pdf.setFont('Helvetica', 7)
                 self.pdf.drawString(35, y, f'{nome}')
             self.pdf.setFont('Helvetica', 10)
-            if len(cidade) <= 9:
+            if len(cidade) <= 8:
                 self.pdf.drawString(345, y, f'{cidade}')
             else:
                 self.pdf.setFont('Helvetica', 7)
@@ -173,8 +171,6 @@ class GerarPDF():
         y -= 5
         self.pdf.setFont('Helvetica-Bold', 10)
         self.pdf.drawString(35, y, 'Total:')
-        # self.pdf.drawRightString(320, y, f'{qt_pedidos_total}')
-        # self.pdf.drawRightString(400, y, f'R$ {valor_total}')
         self.pdf.drawRightString(430, y, f'{qt_pedidos_total}')
         self.pdf.drawRightString(515, y, f'{peso_bruto_total} kg')
         self.pdf.drawRightString(555, y, f'{int(quantidade_itens)}')
@@ -287,7 +283,6 @@ class GerarPDF():
             y -= 15
 
             if y <= 40:
-                #self.pdf.line(30, y+10, 575, y+10)
                 self.pdf.showPage()
                 n_pagina += 1
                 self.cabecalhoResumoCompleto(n_pagina)
@@ -314,7 +309,6 @@ class GerarPDF():
                 y -= 15
 
                 if y <= 40:
-                    #self.pdf.line(30, y+10, 575, y+10)
                     self.pdf.showPage()
                     n_pagina += 1
                     self.cabecalhoResumoCompleto(n_pagina)
@@ -323,7 +317,6 @@ class GerarPDF():
             y -= 10
             
             if y <= 40:
-                #self.pdf.line(30, y+10, 575, y+10)
                 self.pdf.showPage()
                 n_pagina += 1
                 self.cabecalhoResumoCompleto(n_pagina)
@@ -336,8 +329,6 @@ class GerarPDF():
 
         y -= 5
         self.pdf.setFont('Helvetica-Bold', 10)
-        # # self.pdf.drawRightString(320, y, f'{qt_pedidos_total}')
-        # # self.pdf.drawRightString(400, y, f'R$ {valor_total}')
         self.pdf.drawString(35, y, f'Total:...')
         self.pdf.drawString(75, y, f'Qt. Total Pedidos: {qt_pedidos_total}')
         self.pdf.drawString(220, y, f'Peso Bruto Total: {peso_bruto_total} kg')
@@ -442,13 +433,6 @@ class GerarPDF():
         self.cabecalhoTabela(y=600)
         self.adicionarProdutosPaginaInicial(produtos=produtos, notas_fiscais=notas_fiscais, numero_pagina=numero_pagina, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, ultima_pagina=ultima_pagina, quant_paginas=quant_paginas)
 
-    """
-        PENSAR EM ALGO PARA GERAR A LISTA
-        EXEMPLO DE ERRO:
-            HÁ 133 PRODUTOS DIFERENTES, NA LISTA SÓ É GERADO 132. ISSO POR CONTA DA MANEIRA COMO ESTÁ SENDO FEITA
-            A CONTAGEM DE PAGINAS TOTAIS.
-        TALVEZ USAR ARREDONDAMENTO PARA CIMA E PARA BAIXO A DEPENDER DO NUMERO.
-    """
     def geraPDF(self, produtos, notas_fiscais=0, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, informacoes=None, tipo_relatorio=0):
         if tipo_relatorio == 0:
             self.gerarResumo(informacoes, quantidade_sku, quantidade_total)
@@ -458,8 +442,16 @@ class GerarPDF():
         if ((len(produtos)//35)==0):
             quant_paginas = (len(produtos)//27) + 1
         else:
-            quant_paginas = (len(produtos)//35) + 1
-        print(quant_paginas)
+            numero = str(len(produtos)/35)
+            numero_verif = f'0.{numero.split(".")[1]}'
+            if float(numero_verif) >= 0.8:
+                print(numero_verif + " maior")
+                quant_paginas = (len(produtos)//35) + 2
+                print(quant_paginas)
+            else:
+                print(numero_verif + " menor")
+                quant_paginas = (len(produtos)//35) + 1
+                print(quant_paginas)
         quant_inicial = 0
         quant_final = 27
         if quant_paginas == 1:
@@ -469,6 +461,7 @@ class GerarPDF():
             for i in range(2, quant_paginas+1):
                 self.pdf.showPage()
                 if i == quant_paginas:
+                    print(i)
                     quant_inicial = quant_final
                     quant_final += 35
                     self.cabecalhoTabela(y=760)
