@@ -11,7 +11,7 @@ class DadosXML:
     
 
     def dados(self):
-        with open(self._xml) as arquivo:
+        with open(self._xml, encoding="utf8") as arquivo:
             self.dados = xmltodict.parse(arquivo.read())
             nota_fiscal = self.dados['nfeProc']['NFe']['infNFe']['ide']['nNF']
             dados_destinatario = self.dados['nfeProc']['NFe']['infNFe']['dest']
