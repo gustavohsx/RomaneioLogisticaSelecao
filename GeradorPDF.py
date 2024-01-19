@@ -403,7 +403,10 @@ class GerarPDF():
         self.pdf.line(30, 750, 555, 750)
         for produto in produtos:
             self.pdf.setFont('Helvetica', 10)
-            self.pdf.drawString(x[0], y, produto.get_codigo_fabrica()[8:])
+            inicio = 0
+            if len(produto.get_codigo_fabrica()) > 8:
+                inicio = len(produto.get_codigo_fabrica()) - 8
+            self.pdf.drawString(x[0], y, produto.get_codigo_fabrica()[inicio:])
             if len(produto.get_descricao()) <= 54:
                 self.pdf.drawString(x[1], y, produto.get_descricao())
             elif len(produto.get_descricao()) <= 56:
