@@ -7,5 +7,6 @@ setup(
     name="GeradorRomaneio",
     version="2.0",
     description="Programa Gerador de Romaneio",
-    executables=[Executable("app.py", base=base)],
+    executables=[Executable("app.py", base=base, icon="text_xml_24586.ico")],
+    
 )
