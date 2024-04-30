@@ -125,7 +125,7 @@ class GerarPDF():
             cnpj, nome, cidade = key.split(' / ')
             for i in informacoes[key]['notas_fiscais']:
                 numero_nota, peso_bruto_nota, qt_pedido_total_nota = i.split(' / ')
-                print(numero_nota, peso_bruto_nota, qt_pedido_total_nota)
+                # print(numero_nota, peso_bruto_nota, qt_pedido_total_nota)
             nome = nome
             somar = False
             vezes = 1
@@ -440,44 +440,67 @@ class GerarPDF():
         self.adicionarProdutosPaginaInicial(produtos=produtos, notas_fiscais=notas_fiscais, numero_pagina=numero_pagina, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, ultima_pagina=ultima_pagina, quant_paginas=quant_paginas)
 
     def geraPDF(self, produtos, notas_fiscais=0, peso_bruto=0, peso_liquido=0, quantidade_total=0, quantidade_sku=0, informacoes=None, tipo_relatorio=0):
-        if tipo_relatorio == 0:
-            self.gerarResumo(informacoes, quantidade_sku, quantidade_total)
-        elif tipo_relatorio == 1:
-            self.gerarResumoCompleto(informacoes, quantidade_sku, quantidade_total)
-
-        if ((len(produtos)//35)==0):
-            quant_paginas = (len(produtos)//27) + 1
-        else:
-            numero = str(len(produtos)/35)
-            numero_verif = f'0.{numero.split(".")[1]}'
-            if float(numero_verif) >= 0.8:
-                print(numero_verif + " maior")
-                quant_paginas = (len(produtos)//35) + 2
-                print(quant_paginas)
-            else:
-                print(numero_verif + " menor")
-                quant_paginas = (len(produtos)//35) + 1
-                print(quant_paginas)
-        quant_inicial = 0
-        quant_final = 27
-        if quant_paginas == 1:
-            self.paginaInicial(produtos=produtos[quant_inicial:quant_final], notas_fiscais=notas_fiscais, numero_pagina=1, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, ultima_pagina=True, quant_paginas=quant_paginas)
-        else:
-            self.paginaInicial(produtos=produtos[quant_inicial:quant_final], notas_fiscais=notas_fiscais, numero_pagina=1, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, quant_paginas=quant_paginas)
-            for i in range(2, quant_paginas+1):
-                self.pdf.showPage()
-                if i == quant_paginas:
-                    print(i)
-                    quant_inicial = quant_final
-                    quant_final += 35
-                    self.cabecalhoTabela(y=760)
-                    self.adicionaProdutosPaginas(produtos=produtos[quant_inicial:quant_final], notas_fiscais=notas_fiscais, numero_pagina=i, peso_bruto=peso_bruto, peso_liquido=peso_liquido, quantidade_total=quantidade_total, quantidade_sku=quantidade_sku, ultima_pagina=True, quant_paginas=quant_paginas)
-                else:
-                    quant_inicial = quant_final
-                    quant_final += 35
-                    self.cabecalhoTabela(y=760)
-                    self.adicionaProdutosPaginas(produtos=produtos[quant_inicial:quant_final], notas_fiscais=notas_fiscais, numero_pagina=i, quant_paginas=quant_paginas)
         
+        if len(informacoes) > 1:
+            if tipo_relatorio == 0:
+                self.gerarResumo(informacoes, quantidade_sku, quantidade_total)
+            elif tipo_relatorio == 1:
+                self.gerarResumoCompleto(informacoes, quantidade_sku, quantidade_total)
+                # print('¬'*50)
+                # print(len(informacoes))
+                # print('¬'*50)
+
+        for key in informacoes.keys():
+            informacao = {}
+            informacao[key] = informacoes[key]
+            
+            if len(informacoes) > 1 : self.pdf.showPage()
+
+            qtd_produtos_sku = len(informacao[key]['produtos'])
+            
+            nfs = []
+            for nota in informacao[key]['notas_fiscais']:
+                nfs.append(nota.split(' / ')[0])
+
+            if tipo_relatorio == 0:
+                self.gerarResumo(informacao, qtd_produtos_sku, informacao[key]['quantidade_itens'])
+            elif tipo_relatorio == 1:
+                self.gerarResumoCompleto(informacao, qtd_produtos_sku, informacao[key]['quantidade_itens'])
+
+            if ((len(informacao[key]['produtos'])//35)==0):
+                quant_paginas = (len(informacao[key]['produtos'])//27) + 1
+            else:
+                numero = str(len(informacao[key]['produtos'])/35)
+                numero_verif = f'0.{numero.split(".")[1]}'
+                if float(numero_verif) >= 0.8:
+                    print(numero_verif + " maior")
+                    quant_paginas = (len(informacao[key]['produtos'])//35) + 2
+                    print(quant_paginas)
+                else:
+                    print(numero_verif + " menor")
+                    quant_paginas = (len(informacao[key]['produtos'])//35) + 1
+                    print(quant_paginas)
+            quant_inicial = 0
+            quant_final = 27
+            
+            if quant_paginas == 1:
+                self.paginaInicial(produtos=informacao[key]['produtos'][quant_inicial:quant_final], notas_fiscais=nfs, numero_pagina=1, peso_bruto=informacao[key]['peso_bruto'], peso_liquido=informacao[key]['peso_liquido'], quantidade_total=informacao[key]['quantidade_itens'], quantidade_sku=qtd_produtos_sku, ultima_pagina=True, quant_paginas=quant_paginas)
+            else:
+                self.paginaInicial(produtos=informacao[key]['produtos'][quant_inicial:quant_final], notas_fiscais=nfs, numero_pagina=1, peso_bruto=informacao[key]['peso_bruto'], peso_liquido=informacao[key]['peso_liquido'], quantidade_total=informacao[key]['quantidade_itens'], quantidade_sku=qtd_produtos_sku, quant_paginas=quant_paginas)
+                for i in range(2, quant_paginas+1):
+                    self.pdf.showPage()
+                    if i == quant_paginas:
+                        print(i)
+                        quant_inicial = quant_final
+                        quant_final += 35
+                        self.cabecalhoTabela(y=760)
+                        self.adicionaProdutosPaginas(produtos=informacao[key]['produtos'][quant_inicial:quant_final], notas_fiscais=nfs, numero_pagina=i, peso_bruto=informacao[key]['peso_bruto'], peso_liquido=informacao[key]['peso_liquido'], quantidade_total=informacao[key]['quantidade_itens'], quantidade_sku=qtd_produtos_sku, ultima_pagina=True, quant_paginas=quant_paginas)
+                    else:
+                        quant_inicial = quant_final
+                        quant_final += 35
+                        self.cabecalhoTabela(y=760)
+                        self.adicionaProdutosPaginas(produtos=informacao[key]['produtos'][quant_inicial:quant_final], notas_fiscais=nfs, numero_pagina=i, quant_paginas=quant_paginas)
+            
         self.salvar()
 
     def salvar(self):
