@@ -93,10 +93,10 @@ class App:
         self.data = {}
         for recipient in self.recipients:
             try:
-                self.data[recipient.get_nome()].append(recipient)
+                self.data[f'{recipient.get_cnpj()} - {recipient.get_nome()}'].append(recipient)
             except:
-                self.data[recipient.get_nome()] = []
-                self.data[recipient.get_nome()].append(recipient)
+                self.data[f'{recipient.get_cnpj()} - {recipient.get_nome()}'] = []
+                self.data[f'{recipient.get_cnpj()} - {recipient.get_nome()}'].append(recipient)
         self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))
         self.createCheckedButtonAndViewData(self.data)
 
@@ -221,23 +221,23 @@ class App:
             peso_bruto += float(arquivo.get_peso_bruto())
             peso_liquido += float(arquivo.get_peso_liquido())
             total_produtos_nota = 0
+            produtos_destinatario = {}
 
             try:
                 informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
                 informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
-                # informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
                 informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
             except Exception as e:
-                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}'] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0, 'endereco': ''}
+                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}'] = {'notas_fiscais':[], 'peso_bruto':0, 'peso_liquido':0, 'valor':0, 'quantidade_produtos_sku':{}, 'quantidade_itens':0, 'endereco': '', 'produtos_aux': {}, 'produtos': []}
                 informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_bruto'] += float(arquivo.get_peso_bruto())
                 informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['peso_liquido'] += float(arquivo.get_peso_liquido())
-                # informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(arquivo.get_nota_fiscal())
                 informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['valor'] += float(arquivo.get_valor_pagamento())
+                
             for produto in arquivo.get_produtos():
                 try:
                     codigo = produto.get_codigo_fabrica()
                     quantidade = float(todos_produtos[codigo].get_quantidade()) + float(produto.get_quantidade())
-                    produto_novo = ProdutosDTO.ProdutosDTO(codigo_fabrica=produto.get_codigo_fabrica(), ean=produto.get_ean(), ean_tributavel=produto.get_ean_tributavel(), ncm=produto.get_ncm(), cest=produto.get_cest(), cfop=produto.get_cfop(), descricao=produto.get_descricao(), unidade=produto.get_unidade(), quantidade=quantidade, codigo_barras=produto.get_codigo_barras(), v_un_com=produto.get_v_un_com(), v_prod=produto.get_v_prod(), u_trib=produto.get_u_trib(), q_trib=produto.get_q_trib(), v_un_trib=produto.get_v_un_trib(), ind_tot=produto.get_ind_tot)
+                    produto_novo = ProdutosDTO.ProdutosDTO(codigo_fabrica=produto.get_codigo_fabrica(), ean=produto.get_ean(), ean_tributavel=produto.get_ean_tributavel(), ncm=produto.get_ncm(), cest=produto.get_cest(), cfop=produto.get_cfop(), descricao=produto.get_descricao(), unidade=produto.get_unidade(), quantidade=quantidade, codigo_barras=produto.get_codigo_barras(), v_un_com=produto.get_v_un_com(), v_prod=produto.get_v_prod(), u_trib=produto.get_u_trib(), q_trib=produto.get_q_trib(), v_un_trib=produto.get_v_un_trib(), ind_tot=produto.get_ind_tot())
                     todos_produtos[codigo] = produto_novo
                 except Exception as e:
                     codigo = produto.get_codigo_fabrica()
@@ -247,20 +247,42 @@ class App:
                 except:
                     informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_produtos_sku'][codigo] = 1
                 quantidade_total_produtos += float(produto.get_quantidade())
-                informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['quantidade_itens'] += float(produto.get_quantidade())
                 total_produtos_nota += float(produto.get_quantidade())
+
             informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(f'{arquivo.get_nota_fiscal()} / {arquivo.get_peso_bruto()} / {total_produtos_nota}')
             informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['endereco'] = f'{arquivo.get_longradouro()} / {arquivo.get_numero_estabelecimento()} / {arquivo.get_bairro()} / {arquivo.get_uf()}'
+            informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['produtos_aux'].update(produtos_destinatario) #= produtos_destinatario
+        
         for key in todos_produtos.keys():
             produtos.append(todos_produtos[key])
+
+        destinatatios = {}
+        for item in self.selected_products:
+            destinatatios[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] = []
+        for item in self.selected_products:
+            aux_produtos = {}
+            # destinatatios[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] += item.get_produtos()
+            for produto in item.get_produtos():
+                try:
+                    codigo = produto.get_codigo_fabrica()
+                    quant = float(aux_produtos[codigo].get_quantidade()) + float(produto.get_quantidade())
+                    pro = ProdutosDTO.ProdutosDTO(codigo_fabrica=produto.get_codigo_fabrica(), ean=produto.get_ean(), ean_tributavel=produto.get_ean_tributavel(), ncm=produto.get_ncm(), cest=produto.get_cest(), cfop=produto.get_cfop(), descricao=produto.get_descricao(), unidade=produto.get_unidade(), quantidade=quant, codigo_barras=produto.get_codigo_barras(), v_un_com=produto.get_v_un_com(), v_prod=produto.get_v_prod(), u_trib=produto.get_u_trib(), q_trib=produto.get_q_trib(), v_un_trib=produto.get_v_un_trib(), ind_tot=produto.get_ind_tot())
+                    aux_produtos[codigo] = pro
+                except Exception as e:
+                    codigo = produto.get_codigo_fabrica()
+                    aux_produtos[codigo] = produto
+            destinatatios[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] += aux_produtos.values()
+        print(destinatatios)
+        for des in destinatatios.keys():
+            print(len(destinatatios[des]))
+            informacoes[des]['produtos'] = sorted(destinatatios[des], key=lambda x: x.get_descricao())
+            for produto in destinatatios[des]:
+                informacoes[des]['quantidade_itens'] += float(produto.get_quantidade())
         
         produtos_pdf = sorted(produtos, key=lambda x: x.get_descricao())
 
-        print(notas_fiscais, peso_bruto, peso_liquido)
         informacoes_ref = dict(sorted(informacoes.items(), key=lambda item: item[0].split(' / ')[2]))
-        
-        for item in informacoes_ref.items():
-            print('-'*20, '\n', item, '\n', '-'*20)
+
 
         type_report = self.getTypeReport()
         caminho = fd.asksaveasfilename(filetypes=(('PDF', '*.pdf'), ('Todos os Arquivos', '*.*')))
