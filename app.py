@@ -257,12 +257,20 @@ class App:
             produtos.append(todos_produtos[key])
 
         destinatatios = {}
+        produtos_auxiliar = {}
+
         for item in self.selected_products:
             destinatatios[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] = []
-        for item in self.selected_products:
+            try:
+                produtos_auxiliar[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}']['produtos'] += item.get_produtos()
+            except Exception as e:
+                produtos_auxiliar[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] = {'produtos': []}
+                produtos_auxiliar[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}']['produtos'] += item.get_produtos()
+            print(f'produtos adicionados ao {item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}')
+        for item in produtos_auxiliar.keys():
             aux_produtos = {}
             # destinatatios[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] += item.get_produtos()
-            for produto in item.get_produtos():
+            for produto in produtos_auxiliar[item]['produtos']:
                 try:
                     codigo = produto.get_codigo_fabrica()
                     quant = float(aux_produtos[codigo].get_quantidade()) + float(produto.get_quantidade())
@@ -271,8 +279,8 @@ class App:
                 except Exception as e:
                     codigo = produto.get_codigo_fabrica()
                     aux_produtos[codigo] = produto
-            destinatatios[f'{item.get_cnpj()} / {item.get_nome()} / {item.get_municipio()}'] += aux_produtos.values()
-        print(destinatatios)
+            destinatatios[item] = aux_produtos.values()
+        # print(destinatatios)
         for des in destinatatios.keys():
             print(len(destinatatios[des]))
             informacoes[des]['produtos'] = sorted(destinatatios[des], key=lambda x: x.get_descricao())

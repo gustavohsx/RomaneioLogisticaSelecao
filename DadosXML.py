@@ -18,7 +18,8 @@ class DadosXML:
             dados_produtos = self.dados['nfeProc']['NFe']['infNFe']['det']
             peso_bruto = self.dados['nfeProc']['NFe']['infNFe']['transp']['vol']['pesoB']
             peso_liquido = self.dados['nfeProc']['NFe']['infNFe']['transp']['vol']['pesoL']
-            valor_pagamento = self.dados['nfeProc']['NFe']['infNFe']['pag']['detPag']['vPag']
+            # valor_pagamento = self.dados['nfeProc']['NFe']['infNFe']['pag']['detPag']['vPag']
+            valor_pagamento = self.dados['nfeProc']['NFe']['infNFe']['total']['ICMSTot']['vNF']
             self.destinatario = self.dadosDestinatario(nota_fiscal, dados_destinatario, peso_bruto, peso_liquido, valor_pagamento)
 
             tipo_dados_produtos = type(dados_produtos)

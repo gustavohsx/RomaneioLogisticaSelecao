@@ -278,6 +278,11 @@ class GerarPDF():
                 numero_nota, peso_bruto_nota, qt_pedido_total_nota = i.split(' / ')
                 quantidade_itens_nota += float(qt_pedido_total_nota)
             self.pdf.drawString(330, y, f'{int(quantidade_itens_nota)}')
+            self.pdf.setFont('Helvetica', 10)
+            self.pdf.drawString(375, y, 'Valor total:')
+            self.pdf.setFont('Helvetica-Bold', 10)
+            self.pdf.drawString(430, y, f'R$ {valor}')
+            self.pdf.setFont('Helvetica', 10)
 
             self.pdf.line(30, y-5, 575, y-5)
             y -= 15
