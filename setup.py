@@ -10,3 +10,6 @@ setup(
     executables=[Executable("app.py", base=base, icon="text_xml_24586.ico")],
     
 )
+
+# Rode o seguinte comando no terminal
+# python setup.py build
