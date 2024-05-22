@@ -249,7 +249,7 @@ class App:
                 quantidade_total_produtos += float(produto.get_quantidade())
                 total_produtos_nota += float(produto.get_quantidade())
 
-            informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(f'{arquivo.get_nota_fiscal()} / {arquivo.get_peso_bruto()} / {total_produtos_nota}')
+            informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['notas_fiscais'].append(f'{arquivo.get_nota_fiscal()} / {arquivo.get_peso_bruto()} / {total_produtos_nota} / {float(arquivo.get_valor_pagamento())}')
             informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['endereco'] = f'{arquivo.get_longradouro()} / {arquivo.get_numero_estabelecimento()} / {arquivo.get_bairro()} / {arquivo.get_uf()}'
             informacoes[f'{arquivo.get_cnpj()} / {arquivo.get_nome()} / {arquivo.get_municipio()}']['produtos_aux'].update(produtos_destinatario) #= produtos_destinatario
         

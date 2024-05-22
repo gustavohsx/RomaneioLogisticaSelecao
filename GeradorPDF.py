@@ -275,14 +275,13 @@ class GerarPDF():
             self.pdf.setFont('Helvetica-Bold', 10)
             quantidade_itens_nota = 0
             for i in informacoes[key]['notas_fiscais']:
-                numero_nota, peso_bruto_nota, qt_pedido_total_nota = i.split(' / ')
+                numero_nota, peso_bruto_nota, qt_pedido_total_nota, valor_pagamento = i.split(' / ')
                 quantidade_itens_nota += float(qt_pedido_total_nota)
             self.pdf.drawString(330, y, f'{int(quantidade_itens_nota)}')
             self.pdf.setFont('Helvetica', 10)
             self.pdf.drawString(375, y, 'Valor total:')
             self.pdf.setFont('Helvetica-Bold', 10)
             self.pdf.drawString(430, y, f'R$ {valor}')
-            self.pdf.setFont('Helvetica', 10)
 
             self.pdf.line(30, y-5, 575, y-5)
             y -= 15
@@ -295,9 +294,8 @@ class GerarPDF():
 
             for i in informacoes[key]['notas_fiscais']:
                 self.pdf.line(30, y-5, 575, y-5)
-                numero_nota, peso_bruto_nota, qt_pedido_total_nota = i.split(' / ')
+                numero_nota, peso_bruto_nota, qt_pedido_total_nota, valor_pagamento = i.split(' / ')
                 peso_bruto_nota = locale.format_string("%.2f", float(peso_bruto_nota), grouping=True)
-                self.pdf.setFont('Helvetica', 10)
                 self.pdf.setFont('Helvetica', 10)
                 self.pdf.drawString(35, y, f'Nota:')
                 self.pdf.setFont('Helvetica-Bold', 10)
@@ -310,6 +308,10 @@ class GerarPDF():
                 self.pdf.drawString(250, y, f'Qt. Caixas:')
                 self.pdf.setFont('Helvetica-Bold', 10)
                 self.pdf.drawString(310, y, f'{int(float(qt_pedido_total_nota))}')
+                self.pdf.setFont('Helvetica', 10)
+                self.pdf.drawString(375, y, 'Valor NF:')
+                self.pdf.setFont('Helvetica-Bold', 10)
+                self.pdf.drawString(430, y, f'R$ {locale.format_string("%.2f", float(valor_pagamento), grouping=True)}')
 
                 y -= 15
 
